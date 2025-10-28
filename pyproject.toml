@@ -1,0 +1,31 @@
+[project]
+name = "foxhole-war-tracker"
+version = "0.1.0"
+description = "FastAPI backend to track Foxhole war data."
+authors = [{name = "Goliaten"}]
+readme = "README.md"
+requires-python = ">=3.12"
+dependencies = [
+    "asyncmy>=0.2.10",
+    "fastapi>=0.120.1",
+    "httpx>=0.28.1",
+    "mypy>=1.18.2",
+    "pydantic-settings>=2.11.0",
+    "python-dotenv>=1.2.1",
+    "sqlalchemy[asyncio]>=2.0.44",
+    "uvicorn[standard]>=0.38.0",
+]
+
+[dependency-groups]
+dev = [
+    "ruff>=0.14.2",
+]
+
+[tool.ruff]
+# Enable all pycodestyle and Pyflakes rules.
+select = ["E", "F", "W"]
+ignore = ["E501"]  # Ignore "line too long"
+
+[tool.ruff.format]
+quote-style = "double"
+indent-style = "space"

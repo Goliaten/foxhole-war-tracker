@@ -1,0 +1,55 @@
+# Foxhole War Tracker API
+
+This project is a Python backend service that:
+1.  Polls the external Foxhole War API.
+2.  Stores the data in a MariaDB database.
+3.  Exposes its own FastAPI endpoints for a front-end to consume.
+
+It uses FastAPI, SQLAlchemy (async), `uv` for package management, and `ruff` for linting/formatting.
+
+## 1. Prerequisites
+
+* [**Docker**](https://www.docker.com/get-started) and **Docker Compose**
+* [**`uv`**](https://github.com/astral-sh/uv) (Python package manager)
+
+## 2. Setup & Installation
+
+### Step 1: Clone and Set Up Environment
+
+1.  Clone this repository.
+2.  Navigate into the project directory.
+3.  Create your `.env` file:
+    ```bash
+    cp .env.example .env
+    ```
+4.  **Edit `.env`** and set your `MARIADB_ROOT_PASSWORD` and other variables. The defaults should work for a local setup.
+
+### Step 2: Start the MariaDB Database
+
+Run the Docker Compose file to start the MariaDB container in the background.
+
+```bash
+docker compose -f docker-compose.yml up -d
+```
+
+### Step 3: Setup the database tables
+
+Create the database structure from .sql file.
+Change mysecretpassword and fochole_war_db if you changed them in .env file.
+
+```bash
+docker exec -i foxhole_mariadb mariadb -uroot -pmysecretpassword foxhole_war_db < bb.sql
+```
+
+### Step 4: Python virtual environment.
+
+Use uv to create and install venv.
+
+```bash
+uv venv & uv sync
+```
+
+For development use the following to install dev packages
+```bash
+uv sync -group dev
+```
