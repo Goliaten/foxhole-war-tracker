@@ -21,11 +21,11 @@ dev = [
     "ruff>=0.14.2",
 ]
 
-[tool.ruff]
-# Enable all pycodestyle and Pyflakes rules.
-select = ["E", "F", "W"]
-ignore = ["E501"]  # Ignore "line too long"
+# [tool.ruff]
+# # Enable all pycodestyle and Pyflakes rules.
+# select = ["E", "F", "W"]
+# ignore = ["E501"]  # Ignore "line too long"
 
-[tool.ruff.format]
-quote-style = "double"
-indent-style = "space"
+# [tool.ruff.format]
+# quote-style = "double"
+# indent-style = "space"
