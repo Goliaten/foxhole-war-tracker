@@ -4,6 +4,7 @@ from contextlib import asynccontextmanager
 from fastapi import FastAPI
 from src.app.services.data_ingestor import fetch_and_store_war_data
 from src.app.api.v1.endpoints import wars
+from src.app.core.config import settings
 
 # Set up logging
 logging.basicConfig(level=logging.INFO)
@@ -18,11 +19,14 @@ async def background_poller():
     A simple background task that runs forever, polling the API.
     """
     logger.info("Background poller started.")
+    BASE_URLS = settings.WAR_API_BASE_URLS_JSON
+
     while True:
-        try:
-            await fetch_and_store_war_data()
-        except Exception as e:
-            logger.error(f"Error in background poller: {e}", exc_info=True)
+        for base_url in BASE_URLS:
+            try:
+                await fetch_and_store_war_data(base_url)
+            except Exception as e:
+                logger.error(f"Error in background poller: {e}", exc_info=True)
 
         logger.info(f"Polling complete. Sleeping for {POLL_INTERVAL} seconds.")
         await asyncio.sleep(POLL_INTERVAL)

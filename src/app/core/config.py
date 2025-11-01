@@ -1,3 +1,4 @@
+from typing import List
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
@@ -7,7 +8,7 @@ class Settings(BaseSettings):
     """
 
     DATABASE_URL: str
-    WAR_API_BASE_URL: str
+    WAR_API_BASE_URLS_JSON: List[str]
 
     model_config = SettingsConfigDict(
         env_file=".env",
@@ -16,4 +17,4 @@ class Settings(BaseSettings):
     )
 
 
-settings = Settings()
+settings = Settings()  # type: ignore
