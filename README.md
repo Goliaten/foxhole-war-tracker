@@ -53,3 +53,20 @@ For development use the following to install dev packages
 ```bash
 uv sync -group dev
 ```
+
+## 3. Launching the server
+### 1. Activating python's venv
+On windows:
+```bash
+.venv\Scripts\activate
+```
+
+On linux:
+```bash
+source .venv/bin/activate
+```
+
+### 2. Starting the server
+```bash
+uvicorn src.app.main:app --reload
+```
