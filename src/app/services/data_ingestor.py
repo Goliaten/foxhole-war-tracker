@@ -17,7 +17,6 @@ async def fetch_and_store_war_data(base_url: str):
     logger.info("Starting data ingestion...")
     try:
         # 1. Fetch data from external API
-        switch = True
         war_data = await war_api_client.get_current_war_data(base_url)
 
         if not war_data:
@@ -26,13 +25,12 @@ async def fetch_and_store_war_data(base_url: str):
 
         # 2. Get a new DB session
         async with AsyncSessionLocal() as db:
-            REV = await crud.upsert_rev(
-                db, {"tmstmp": datetime.now()}, strict_insert=True
-            )
+            rev = await crud.create_rev_and_get_id(db)
+
             shard = await crud.get_shard_by_url(db, base_url)
 
             # 3. Pass data to CRUD function to create or update
-            war = await insert_scraped_data(db, war_data, REV, shard)
+            await insert_scraped_data(db, war_data, rev, shard)
             logger.info(
                 f"Successfully upserted War {war_data.get('war_state', {}).get('warNumber')}. "
                 f"Shard {shard.name}"
@@ -42,14 +40,14 @@ async def fetch_and_store_war_data(base_url: str):
         logger.error(f"Error during data ingestion: {e}", exc_info=True)
 
 
-async def insert_scraped_data(db, war_data: Dict[str, Any], REV, shard) -> Any:
+async def insert_scraped_data(db, war_data: Dict[str, Any], rev, shard) -> Any:
     logger.debug(f"war_data keys: {war_data.keys()}")
 
     for key, value in war_data.items():
         match key:
             case "war_state":
                 print(f"{key} {value}")
-                value = parse_war_state(value, REV, shard)
+                value = parse_war_state(value, rev, shard)
                 await crud.upsert_warstate(db, value)
                 print("inserted")
             case "map_list":
