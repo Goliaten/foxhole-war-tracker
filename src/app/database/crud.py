@@ -1,66 +1,411 @@
+from typing import Any, Dict, Iterable, List, Optional, Type
+
+from sqlalchemy import delete as sa_delete, insert as sa_insert
+from sqlalchemy import select, update as sa_update
 from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy.future import select
-from src.app.database.models import War
-from src.app.schemas.war import WarBase
-from datetime import datetime
+# sqlalchemy.orm imports not needed here
+
+from src.app.database.models import (
+    REV,
+    Hex,
+    StructureTypes,
+    Shard,
+    WarState,
+    MapWarReport,
+    StaticMapData,
+    StaticMapDataItem,
+    DynamicMapData,
+    DynamicMapDataItem,
+)
 
 
-async def get_war_by_number(db: AsyncSession, war_number: int) -> War | None:
-    """
-    Fetches a single war by its war number.
-    """
-    result = await db.execute(select(War).where(War.war_number == war_number))
+# Generic helpers
+async def _get_one(db: AsyncSession, model: Type[Any], **filters) -> Optional[Any]:
+    stmt = select(model).filter_by(**filters)
+    result = await db.execute(stmt)
     return result.scalars().first()
 
 
-async def get_all_wars(db: AsyncSession, skip: int = 0, limit: int = 100) -> list[War]:
-    """
-    Fetches all wars with pagination.
-    """
-    result = await db.execute(
-        select(War).order_by(War.war_number.desc()).offset(skip).limit(limit)
-    )
+async def _get_many(
+    db: AsyncSession, model: Type[Any], skip: int = 0, limit: int = 100, **filters
+) -> List[Any]:
+    stmt = select(model).filter_by(**filters).offset(skip).limit(limit)
+    result = await db.execute(stmt)
     return list(result.scalars().all())
 
 
-async def create_or_update_war(db: AsyncSession, war_data: dict) -> War:
-    """
-    Updates a war if it exists by war_number, or creates it if it doesn't.
-    This is an "upsert" operation.
-    """
-    # Convert timestamps from ms to datetime objects
-    start_time = (
-        datetime.fromtimestamp(war_data["conquestStartTime"] / 1000.0)
-        if war_data.get("conquestStartTime")
-        else None
-    )
-    end_time = (
-        datetime.fromtimestamp(war_data["conquestEndTime"] / 1000.0)
-        if war_data.get("conquestEndTime")
-        else None
-    )
-
-    # Find existing war
-    db_war = await get_war_by_number(db, war_number=war_data["warNumber"])
-
-    if db_war:
-        # Update existing war
-        db_war.winner = war_data.get("winner")
-        db_war.end_time = end_time
-        # In case the start time was missing before
-        if not db_war.start_time:
-            db_war.start_time = start_time
-    else:
-        # Create new war
-        db_war = War(
-            war_number=war_data["warNumber"],
-            start_time=start_time,
-            end_time=end_time,
-            winner=war_data.get("winner"),
-            shard="live",  # The API doesn't seem to provide this, so we hardcode
-        )
-        db.add(db_war)
-
+async def _delete(db: AsyncSession, model: Type[Any], **filters) -> int:
+    stmt = sa_delete(model).filter_by(**filters)
+    res = await db.execute(stmt)
     await db.commit()
-    await db.refresh(db_war)
-    return db_war
+    return res.rowcount if hasattr(res, "rowcount") else 0
+
+
+async def _upsert(
+    db: AsyncSession,
+    model: Type[Any],
+    key_fields: Iterable[str],
+    data: Dict[str, Any],
+    strict_insert: bool = False,
+    strict_update: bool = False,
+) -> Any:
+    """
+    Upsert helper: find by key_fields; update if exists, insert otherwise.
+    If strict_insert is True, raise if record exists.
+    If strict_update is True, raise if no record exists to update.
+    """
+    # Prefer updating by primary key if present in data and not null/None.
+    pk_names = [c.name for c in model.__table__.primary_key.columns]
+    pk_filters = {k: data[k] for k in pk_names if k in data and data[k] is not None}
+
+    if pk_filters:
+        existing = await _get_one(db, model, **pk_filters)
+
+        if existing and strict_insert:
+            raise ValueError("Record exists but strict_insert=True")
+
+        if not existing and strict_update:
+            raise ValueError("Record does not exist but strict_update=True")
+
+        if existing:
+            # update by PK
+            await db.execute(
+                sa_update(model)
+                .where(*[getattr(model, k) == pk_filters[k] for k in pk_filters])
+                .values(**data)
+            )
+            await db.commit()
+            return await _get_one(db, model, **pk_filters)
+
+        # If PK present but no existing and strict_update is False, insert
+        stmt = sa_insert(model).values(**data)
+        await db.execute(stmt)
+        await db.commit()
+        return await _get_one(db, model, **pk_filters)
+
+    # No PK present: perform insert (do not attempt to match by other keys)
+    if strict_update:
+        # caller expected an update by PK but none was provided
+        raise ValueError("strict_update=True but no primary key provided in data")
+
+    # Insert
+    stmt = sa_insert(model).values(**data)
+    await db.execute(stmt)
+    await db.commit()
+    # Try to return by any provided key_fields if possible, otherwise return None
+    return await _get_one(db, model, **{k: data[k] for k in key_fields if k in data})
+
+
+# Per-model CRUD wrappers
+
+
+# REV
+async def get_rev(db: AsyncSession, rev: int) -> Optional[REV]:
+    return await _get_one(db, REV, REV=rev)
+
+
+async def list_revs(db: AsyncSession, skip: int = 0, limit: int = 100) -> List[REV]:
+    return await _get_many(db, REV, skip=skip, limit=limit)
+
+
+async def upsert_rev(
+    db: AsyncSession,
+    data: Dict[str, Any],
+    strict_insert: bool = False,
+    strict_update: bool = False,
+) -> REV:
+    return await _upsert(
+        db,
+        REV,
+        key_fields=["REV"],
+        data=data,
+        strict_insert=strict_insert,
+        strict_update=strict_update,
+    )
+
+
+async def delete_rev(db: AsyncSession, rev: int) -> int:
+    return await _delete(db, REV, REV=rev)
+
+
+# Hex
+async def get_hex(db: AsyncSession, id: int) -> Optional[Hex]:
+    return await _get_one(db, Hex, id=id)
+
+
+async def list_hexes(db: AsyncSession, skip: int = 0, limit: int = 100) -> List[Hex]:
+    return await _get_many(db, Hex, skip=skip, limit=limit)
+
+
+async def upsert_hex(
+    db: AsyncSession,
+    data: Dict[str, Any],
+    strict_insert: bool = False,
+    strict_update: bool = False,
+) -> Hex:
+    return await _upsert(
+        db,
+        Hex,
+        key_fields=["id"],
+        data=data,
+        strict_insert=strict_insert,
+        strict_update=strict_update,
+    )
+
+
+async def delete_hex(db: AsyncSession, id: int) -> int:
+    return await _delete(db, Hex, id=id)
+
+
+# StructureTypes
+async def get_structure_type(db: AsyncSession, id: int) -> Optional[StructureTypes]:
+    return await _get_one(db, StructureTypes, id=id)
+
+
+async def list_structure_types(
+    db: AsyncSession, skip: int = 0, limit: int = 100
+) -> List[StructureTypes]:
+    return await _get_many(db, StructureTypes, skip=skip, limit=limit)
+
+
+async def upsert_structure_type(
+    db: AsyncSession,
+    data: Dict[str, Any],
+    strict_insert: bool = False,
+    strict_update: bool = False,
+) -> StructureTypes:
+    return await _upsert(
+        db,
+        StructureTypes,
+        key_fields=["id"],
+        data=data,
+        strict_insert=strict_insert,
+        strict_update=strict_update,
+    )
+
+
+async def delete_structure_type(db: AsyncSession, id: int) -> int:
+    return await _delete(db, StructureTypes, id=id)
+
+
+# Shard
+async def get_shard(db: AsyncSession, id: int) -> Optional[Shard]:
+    return await _get_one(db, Shard, id=id)
+
+
+async def get_shard_by_url(db: AsyncSession, base_url: str) -> Optional[Shard]:
+    return await _get_one(db, Shard, url=base_url)
+
+
+async def list_shards(db: AsyncSession, skip: int = 0, limit: int = 100) -> List[Shard]:
+    return await _get_many(db, Shard, skip=skip, limit=limit)
+
+
+async def upsert_shard(
+    db: AsyncSession,
+    data: Dict[str, Any],
+    strict_insert: bool = False,
+    strict_update: bool = False,
+) -> Shard:
+    return await _upsert(
+        db,
+        Shard,
+        key_fields=["id"],
+        data=data,
+        strict_insert=strict_insert,
+        strict_update=strict_update,
+    )
+
+
+async def delete_shard(db: AsyncSession, id: int) -> int:
+    return await _delete(db, Shard, id=id)
+
+
+# WarState
+async def get_warstate(db: AsyncSession, id: int) -> Optional[WarState]:
+    return await _get_one(db, WarState, id=id)
+
+
+async def list_warstates(
+    db: AsyncSession, skip: int = 0, limit: int = 100
+) -> List[WarState]:
+    return await _get_many(db, WarState, skip=skip, limit=limit)
+
+
+async def upsert_warstate(
+    db: AsyncSession,
+    data: Dict[str, Any],
+    strict_insert: bool = False,
+    strict_update: bool = False,
+) -> WarState:
+    return await _upsert(
+        db,
+        WarState,
+        key_fields=["id"],
+        data=data,
+        strict_insert=strict_insert,
+        strict_update=strict_update,
+    )
+
+
+async def delete_warstate(db: AsyncSession, id: int) -> int:
+    return await _delete(db, WarState, id=id)
+
+
+# MapWarReport
+async def get_map_war_report(db: AsyncSession, id: int) -> Optional[MapWarReport]:
+    return await _get_one(db, MapWarReport, id=id)
+
+
+async def list_map_war_reports(
+    db: AsyncSession, skip: int = 0, limit: int = 100
+) -> List[MapWarReport]:
+    return await _get_many(db, MapWarReport, skip=skip, limit=limit)
+
+
+async def upsert_map_war_report(
+    db: AsyncSession,
+    data: Dict[str, Any],
+    strict_insert: bool = False,
+    strict_update: bool = False,
+) -> MapWarReport:
+    return await _upsert(
+        db,
+        MapWarReport,
+        key_fields=["id"],
+        data=data,
+        strict_insert=strict_insert,
+        strict_update=strict_update,
+    )
+
+
+async def delete_map_war_report(db: AsyncSession, id: int) -> int:
+    return await _delete(db, MapWarReport, id=id)
+
+
+# StaticMapData
+async def get_static_map_data(db: AsyncSession, id: int) -> Optional[StaticMapData]:
+    return await _get_one(db, StaticMapData, id=id)
+
+
+async def list_static_map_data(
+    db: AsyncSession, skip: int = 0, limit: int = 100
+) -> List[StaticMapData]:
+    return await _get_many(db, StaticMapData, skip=skip, limit=limit)
+
+
+async def upsert_static_map_data(
+    db: AsyncSession,
+    data: Dict[str, Any],
+    strict_insert: bool = False,
+    strict_update: bool = False,
+) -> StaticMapData:
+    return await _upsert(
+        db,
+        StaticMapData,
+        key_fields=["id"],
+        data=data,
+        strict_insert=strict_insert,
+        strict_update=strict_update,
+    )
+
+
+async def delete_static_map_data(db: AsyncSession, id: int) -> int:
+    return await _delete(db, StaticMapData, id=id)
+
+
+# StaticMapDataItem
+async def get_static_map_data_item(
+    db: AsyncSession, id: int
+) -> Optional[StaticMapDataItem]:
+    return await _get_one(db, StaticMapDataItem, id=id)
+
+
+async def list_static_map_data_items(
+    db: AsyncSession, skip: int = 0, limit: int = 100
+) -> List[StaticMapDataItem]:
+    return await _get_many(db, StaticMapDataItem, skip=skip, limit=limit)
+
+
+async def upsert_static_map_data_item(
+    db: AsyncSession,
+    data: Dict[str, Any],
+    strict_insert: bool = False,
+    strict_update: bool = False,
+) -> StaticMapDataItem:
+    return await _upsert(
+        db,
+        StaticMapDataItem,
+        key_fields=["id"],
+        data=data,
+        strict_insert=strict_insert,
+        strict_update=strict_update,
+    )
+
+
+async def delete_static_map_data_item(db: AsyncSession, id: int) -> int:
+    return await _delete(db, StaticMapDataItem, id=id)
+
+
+# DynamicMapData
+async def get_dynamic_map_data(db: AsyncSession, id: int) -> Optional[DynamicMapData]:
+    return await _get_one(db, DynamicMapData, id=id)
+
+
+async def list_dynamic_map_data(
+    db: AsyncSession, skip: int = 0, limit: int = 100
+) -> List[DynamicMapData]:
+    return await _get_many(db, DynamicMapData, skip=skip, limit=limit)
+
+
+async def upsert_dynamic_map_data(
+    db: AsyncSession,
+    data: Dict[str, Any],
+    strict_insert: bool = False,
+    strict_update: bool = False,
+) -> DynamicMapData:
+    return await _upsert(
+        db,
+        DynamicMapData,
+        key_fields=["id"],
+        data=data,
+        strict_insert=strict_insert,
+        strict_update=strict_update,
+    )
+
+
+async def delete_dynamic_map_data(db: AsyncSession, id: int) -> int:
+    return await _delete(db, DynamicMapData, id=id)
+
+
+# DynamicMapDataItem
+async def get_dynamic_map_data_item(
+    db: AsyncSession, id: int
+) -> Optional[DynamicMapDataItem]:
+    return await _get_one(db, DynamicMapDataItem, id=id)
+
+
+async def list_dynamic_map_data_items(
+    db: AsyncSession, skip: int = 0, limit: int = 100
+) -> List[DynamicMapDataItem]:
+    return await _get_many(db, DynamicMapDataItem, skip=skip, limit=limit)
+
+
+async def upsert_dynamic_map_data_item(
+    db: AsyncSession,
+    data: Dict[str, Any],
+    strict_insert: bool = False,
+    strict_update: bool = False,
+) -> DynamicMapDataItem:
+    return await _upsert(
+        db,
+        DynamicMapDataItem,
+        key_fields=["id"],
+        data=data,
+        strict_insert=strict_insert,
+        strict_update=strict_update,
+    )
+
+
+async def delete_dynamic_map_data_item(db: AsyncSession, id: int) -> int:
+    return await _delete(db, DynamicMapDataItem, id=id)

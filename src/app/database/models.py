@@ -1,102 +1,150 @@
-from sqlalchemy import Integer, String, DateTime, Boolean, ForeignKey
+from sqlalchemy import (
+    Integer,
+    String,
+    DateTime,
+    ForeignKey,
+    Float,
+)
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 from src.app.database.session import Base
 
 
-class War(Base):
-    __tablename__ = "wars"
-    id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
-    war_number: Mapped[int] = mapped_column(Integer, unique=True, nullable=False)
-    start_time: Mapped[DateTime] = mapped_column(DateTime, nullable=True)
-    end_time: Mapped[DateTime] = mapped_column(DateTime, nullable=True)
-    winner: Mapped[str] = mapped_column(String(50), nullable=True)
-    shard: Mapped[str] = mapped_column(String(255), nullable=True)
+# Models derived from bb.sql
 
-    regions_history = relationship("WarRegionsHistory", back_populates="war")
-    structure_history = relationship("StructureHistory", back_populates="war")
-    hex_statistics = relationship("HexStatisticHistory", back_populates="war")
+
+class REV(Base):
+    __tablename__ = "REV"
+    REV: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
+    tmstmp: Mapped[DateTime] = mapped_column(DateTime, nullable=True)
 
 
 class Hex(Base):
     __tablename__ = "hex"
     id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
-    name: Mapped[str] = mapped_column(String(100), nullable=True)
-
-    regions = relationship("Region", back_populates="hex")
-    hex_statistics = relationship("HexStatisticHistory", back_populates="hex")
+    REV: Mapped[int] = mapped_column(Integer, ForeignKey("REV.REV"), nullable=True)
+    name: Mapped[str] = mapped_column(String(150), nullable=True)
 
 
-class Region(Base):
-    __tablename__ = "regions"
+class StructureTypes(Base):
+    __tablename__ = "StructureTypes"
+    id: Mapped[int] = mapped_column(Integer, primary_key=True)
+    REV: Mapped[int] = mapped_column(Integer, ForeignKey("REV.REV"), nullable=True)
+    name: Mapped[str] = mapped_column(String(50), nullable=True)
+
+
+class Shard(Base):
+    __tablename__ = "shard"
     id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
-    name: Mapped[str] = mapped_column(String(100), nullable=True)
-    map_name: Mapped[str] = mapped_column(String(100), nullable=True)
-    region_code: Mapped[str] = mapped_column(String(50), unique=True, nullable=True)
+    REV: Mapped[int] = mapped_column(Integer, ForeignKey("REV.REV"), nullable=True)
+    url: Mapped[str] = mapped_column(String(200), nullable=True)
+    name: Mapped[str] = mapped_column(String(20), nullable=True)
+
+
+class WarState(Base):
+    __tablename__ = "WarState"
+    id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
+    REV: Mapped[int] = mapped_column(Integer, ForeignKey("REV.REV"), nullable=True)
+    shard_id: Mapped[int] = mapped_column(
+        Integer, ForeignKey("shard.id"), nullable=True
+    )
+    warId: Mapped[str] = mapped_column(String(40), nullable=True)
+    warNumber: Mapped[int] = mapped_column(Integer, nullable=True)
+    winner: Mapped[str] = mapped_column(String(20), nullable=True)
+    conquestStartTime: Mapped[DateTime] = mapped_column(DateTime, nullable=True)
+    conquestEndTime: Mapped[DateTime] = mapped_column(DateTime, nullable=True)
+    resistanceStartTime: Mapped[DateTime] = mapped_column(DateTime, nullable=True)
+    scheduledConquestEndTime: Mapped[DateTime] = mapped_column(DateTime, nullable=True)
+    requiredVictoryTowns: Mapped[int] = mapped_column(Integer, nullable=True)
+    shortRequiredVictoryTowns: Mapped[int] = mapped_column(Integer, nullable=True)
+
+    shard = relationship("Shard")
+
+
+class MapWarReport(Base):
+    __tablename__ = "MapWarReport"
+    id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
+    REV: Mapped[int] = mapped_column(Integer, ForeignKey("REV.REV"), nullable=True)
     hex_id: Mapped[int] = mapped_column(Integer, ForeignKey("hex.id"), nullable=True)
-
-    hex = relationship("Hex", back_populates="regions")
-    war_history = relationship("WarRegionsHistory", back_populates="region")
-    structure_history = relationship("StructureHistory", back_populates="region")
-
-
-class WarRegionsHistory(Base):
-    __tablename__ = "war_regions_history"
-    id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
-    created_at: Mapped[DateTime] = mapped_column(DateTime, nullable=True)
-    war_id: Mapped[int] = mapped_column(Integer, ForeignKey("wars.id"), nullable=True)
-    region_id: Mapped[int] = mapped_column(
-        Integer, ForeignKey("regions.id"), nullable=True
+    shard_id: Mapped[int] = mapped_column(
+        Integer, ForeignKey("shard.id"), nullable=True
     )
-    owner: Mapped[str] = mapped_column(String(50), nullable=True)
-    is_victory_town: Mapped[bool] = mapped_column(Boolean, nullable=True)
+    totalEnlistments: Mapped[int] = mapped_column(Integer, nullable=True)
+    colonialCasualties: Mapped[int] = mapped_column(Integer, nullable=True)
+    wardenCasualties: Mapped[int] = mapped_column(Integer, nullable=True)
+    daysOfWar: Mapped[int] = mapped_column(Integer, nullable=True)
+    version: Mapped[int] = mapped_column(Integer, nullable=True)
 
-    war = relationship("War", back_populates="regions_history")
-    region = relationship("Region", back_populates="war_history")
+    hex = relationship("Hex")
+    shard = relationship("Shard")
 
 
-class StructureHistory(Base):
-    __tablename__ = "structure_history"
+class StaticMapData(Base):
+    __tablename__ = "StaticMapData"
     id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
-    created_at: Mapped[DateTime] = mapped_column(DateTime, nullable=True)
-    region_id: Mapped[int] = mapped_column(
-        Integer, ForeignKey("regions.id"), nullable=True
-    )
-    war_id: Mapped[int] = mapped_column(Integer, ForeignKey("wars.id"), nullable=True)
-    name: Mapped[str] = mapped_column(String(100), nullable=True)
-    type: Mapped[str] = mapped_column(String(50), nullable=True)
-    coordinates: Mapped[str] = mapped_column(String(255), nullable=True)
-    controlling_faction: Mapped[str] = mapped_column(String(50), nullable=True)
-    is_victory_town: Mapped[bool] = mapped_column(Boolean, nullable=True)
-    is_scorched: Mapped[bool] = mapped_column(Boolean, nullable=True)
-
-    region = relationship("Region", back_populates="structure_history")
-    war = relationship("War", back_populates="structure_history")
-    structure_types = relationship("StructureType", back_populates="town")
-
-
-class StructureType(Base):
-    __tablename__ = "structure_type"
-    id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
-    town_id: Mapped[int] = mapped_column(
-        Integer, ForeignKey("structure_history.id"), nullable=True
-    )
-    name: Mapped[str] = mapped_column(String(100), nullable=True)
-    type: Mapped[str] = mapped_column(String(50), nullable=True)
-    created_at: Mapped[DateTime] = mapped_column(DateTime, nullable=True)
-    updated_at: Mapped[DateTime] = mapped_column(DateTime, nullable=True)
-
-    town = relationship("StructureHistory", back_populates="structure_types")
-
-
-class HexStatisticHistory(Base):
-    __tablename__ = "hex_statistic_history"
-    id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
-    created_at: Mapped[DateTime] = mapped_column(DateTime, nullable=True)
-    colonial_casualties: Mapped[int] = mapped_column(Integer, nullable=True)
-    warden_casualties: Mapped[int] = mapped_column(Integer, nullable=True)
-    total_enlistments: Mapped[int] = mapped_column(Integer, nullable=True)
+    REV: Mapped[int] = mapped_column(Integer, ForeignKey("REV.REV"), nullable=True)
     hex_id: Mapped[int] = mapped_column(Integer, ForeignKey("hex.id"), nullable=True)
-    war_id: Mapped[int] = mapped_column(Integer, ForeignKey("wars.id"), nullable=True)
+    shard_id: Mapped[int] = mapped_column(
+        Integer, ForeignKey("shard.id"), nullable=True
+    )
+    regionId: Mapped[int] = mapped_column(Integer, nullable=True)
+    scorchedVictoryTowns: Mapped[int] = mapped_column(Integer, nullable=True)
+    version: Mapped[int] = mapped_column(Integer, nullable=True)
 
-    hex = relationship("Hex", back_populates="hex_statistics")
-    war = relationship("War", back_populates="hex_statistics")
+    hex = relationship("Hex")
+    shard = relationship("Shard")
+    items = relationship(
+        "StaticMapDataItem", back_populates="static_map", cascade="all, delete-orphan"
+    )
+
+
+class StaticMapDataItem(Base):
+    __tablename__ = "StaticMapDataItem"
+    id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
+    REV: Mapped[int] = mapped_column(Integer, ForeignKey("REV.REV"), nullable=True)
+    StaticMapData_id: Mapped[int] = mapped_column(
+        Integer, ForeignKey("StaticMapData.id"), nullable=True
+    )
+    text: Mapped[str] = mapped_column(String(150), nullable=True)
+    x: Mapped[float] = mapped_column(Float, nullable=True)
+    y: Mapped[float] = mapped_column(Float, nullable=True)
+    mapMarkerType: Mapped[str] = mapped_column(String(6), nullable=True)
+
+    static_map = relationship("StaticMapData", back_populates="items")
+
+
+class DynamicMapData(Base):
+    __tablename__ = "DynamicMapData"
+    id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
+    REV: Mapped[int] = mapped_column(Integer, ForeignKey("REV.REV"), nullable=True)
+    hex_id: Mapped[int] = mapped_column(Integer, ForeignKey("hex.id"), nullable=True)
+    shard_id: Mapped[int] = mapped_column(
+        Integer, ForeignKey("shard.id"), nullable=True
+    )
+    regionId: Mapped[int] = mapped_column(Integer, nullable=True)
+    scorchedVictoryTowns: Mapped[int] = mapped_column(Integer, nullable=True)
+    version: Mapped[int] = mapped_column(Integer, nullable=True)
+
+    hex = relationship("Hex")
+    shard = relationship("Shard")
+    items = relationship(
+        "DynamicMapDataItem", back_populates="dynamic_map", cascade="all, delete-orphan"
+    )
+
+
+class DynamicMapDataItem(Base):
+    __tablename__ = "DynamicMapDataItem"
+    id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
+    REV: Mapped[int] = mapped_column(Integer, ForeignKey("REV.REV"), nullable=True)
+    DynamicMapData_id: Mapped[int] = mapped_column(
+        Integer, ForeignKey("DynamicMapData.id"), nullable=True
+    )
+    teamId: Mapped[str] = mapped_column(String(20), nullable=True)
+    iconType: Mapped[int] = mapped_column(
+        Integer, ForeignKey("StructureTypes.id"), nullable=True
+    )
+    x: Mapped[float] = mapped_column(Float, nullable=True)
+    y: Mapped[float] = mapped_column(Float, nullable=True)
+    flags: Mapped[int] = mapped_column(Integer, nullable=True)
+    viewDirection: Mapped[int] = mapped_column(Integer, nullable=True)
+
+    dynamic_map = relationship("DynamicMapData", back_populates="items")
