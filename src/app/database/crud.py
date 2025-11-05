@@ -1,4 +1,4 @@
-from datetime import datetime
+from datetime import datetime, timezone
 from typing import Any, Dict, Iterable, List, Optional, Type
 
 from sqlalchemy import delete as sa_delete, insert as sa_insert
@@ -110,7 +110,7 @@ async def list_revs(db: AsyncSession, skip: int = 0, limit: int = 100) -> List[R
 
 
 async def create_rev_and_get_id(db: AsyncSession) -> REV:
-    rev = REV(tmstmp=datetime.utcnow())  # use utc time
+    rev = REV(tmstmp=datetime.now(timezone.utc))  # use utc time
     db.add(rev)
     await db.commit()
     await db.refresh(rev)  # populates rev.REV (autoincrement PK)
