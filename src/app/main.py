@@ -7,7 +7,7 @@ from src.app.api.v1.endpoints import wars
 from src.app.core.config import settings
 
 # Set up logging
-logging.basicConfig(level=logging.INFO)
+logging.basicConfig(level=settings.LOG_LEVEL)
 logger = logging.getLogger(__name__)
 
 # Polling interval (in seconds)
