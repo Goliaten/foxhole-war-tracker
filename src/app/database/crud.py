@@ -104,8 +104,10 @@ async def get_rev(db: AsyncSession, rev: int) -> Optional[REV]:
     return await _get_one(db, REV, REV=rev)
 
 
-async def list_revs(db: AsyncSession, skip: int = 0, limit: int = 100) -> List[REV]:
-    return await _get_many(db, REV, skip=skip, limit=limit)
+async def list_revs(
+    db: AsyncSession, skip: int = 0, limit: int = 100, **filters
+) -> List[REV]:
+    return await _get_many(db, REV, skip=skip, limit=limit, **filters)
 
 
 async def create_rev_and_get_id(db: AsyncSession) -> REV:
@@ -138,12 +140,14 @@ async def delete_rev(db: AsyncSession, rev: int) -> int:
 
 
 # Hex
-async def get_hex(db: AsyncSession, id: int) -> Optional[Hex]:
-    return await _get_one(db, Hex, id=id)
+async def get_hex(db: AsyncSession, **filters) -> Optional[Hex]:
+    return await _get_one(db, Hex, **filters)
 
 
-async def list_hexes(db: AsyncSession, skip: int = 0, limit: int = 100) -> List[Hex]:
-    return await _get_many(db, Hex, skip=skip, limit=limit)
+async def list_hexes(
+    db: AsyncSession, skip: int = 0, limit: int = 100, **filters
+) -> List[Hex]:
+    return await _get_many(db, Hex, skip=skip, limit=limit, **filters)
 
 
 async def upsert_hex(
@@ -163,19 +167,19 @@ async def upsert_hex(
     )
 
 
-async def delete_hex(db: AsyncSession, id: int) -> int:
-    return await _delete(db, Hex, id=id)
+async def delete_hex(db: AsyncSession, **filters) -> int:
+    return await _delete(db, Hex, **filters)
 
 
 # StructureTypes
-async def get_structure_type(db: AsyncSession, id: int) -> Optional[StructureTypes]:
-    return await _get_one(db, StructureTypes, id=id)
+async def get_structure_type(db: AsyncSession, **filters) -> Optional[StructureTypes]:
+    return await _get_one(db, StructureTypes, **filters)
 
 
 async def list_structure_types(
-    db: AsyncSession, skip: int = 0, limit: int = 100
+    db: AsyncSession, skip: int = 0, limit: int = 100, **filters
 ) -> List[StructureTypes]:
-    return await _get_many(db, StructureTypes, skip=skip, limit=limit)
+    return await _get_many(db, StructureTypes, skip=skip, limit=limit, **filters)
 
 
 async def upsert_structure_type(
@@ -195,21 +199,23 @@ async def upsert_structure_type(
     )
 
 
-async def delete_structure_type(db: AsyncSession, id: int) -> int:
-    return await _delete(db, StructureTypes, id=id)
+async def delete_structure_type(db: AsyncSession, **filters) -> int:
+    return await _delete(db, StructureTypes, **filters)
 
 
 # Shard
-async def get_shard(db: AsyncSession, id: int) -> Optional[Shard]:
-    return await _get_one(db, Shard, id=id)
+async def get_shard(db: AsyncSession, **filters) -> Optional[Shard]:
+    return await _get_one(db, Shard, **filters)
 
 
 async def get_shard_by_url(db: AsyncSession, base_url: str) -> Optional[Shard]:
     return await _get_one(db, Shard, url=base_url)
 
 
-async def list_shards(db: AsyncSession, skip: int = 0, limit: int = 100) -> List[Shard]:
-    return await _get_many(db, Shard, skip=skip, limit=limit)
+async def list_shards(
+    db: AsyncSession, skip: int = 0, limit: int = 100, **filters
+) -> List[Shard]:
+    return await _get_many(db, Shard, skip=skip, limit=limit, **filters)
 
 
 async def upsert_shard(
@@ -229,19 +235,19 @@ async def upsert_shard(
     )
 
 
-async def delete_shard(db: AsyncSession, id: int) -> int:
-    return await _delete(db, Shard, id=id)
+async def delete_shard(db: AsyncSession, **filters) -> int:
+    return await _delete(db, Shard, **filters)
 
 
 # WarState
-async def get_warstate(db: AsyncSession, id: int) -> Optional[WarState]:
-    return await _get_one(db, WarState, id=id)
+async def get_warstate(db: AsyncSession, **filters) -> Optional[WarState]:
+    return await _get_one(db, WarState, **filters)
 
 
 async def list_warstates(
-    db: AsyncSession, skip: int = 0, limit: int = 100
+    db: AsyncSession, skip: int = 0, limit: int = 100, **filters
 ) -> List[WarState]:
-    return await _get_many(db, WarState, skip=skip, limit=limit)
+    return await _get_many(db, WarState, skip=skip, limit=limit, **filters)
 
 
 async def upsert_warstate(
@@ -261,19 +267,19 @@ async def upsert_warstate(
     )
 
 
-async def delete_warstate(db: AsyncSession, id: int) -> int:
-    return await _delete(db, WarState, id=id)
+async def delete_warstate(db: AsyncSession, **filters) -> int:
+    return await _delete(db, WarState, **filters)
 
 
 # MapWarReport
-async def get_map_war_report(db: AsyncSession, id: int) -> Optional[MapWarReport]:
-    return await _get_one(db, MapWarReport, id=id)
+async def get_map_war_report(db: AsyncSession, **filters) -> Optional[MapWarReport]:
+    return await _get_one(db, MapWarReport, **filters)
 
 
 async def list_map_war_reports(
-    db: AsyncSession, skip: int = 0, limit: int = 100
+    db: AsyncSession, skip: int = 0, limit: int = 100, **filters
 ) -> List[MapWarReport]:
-    return await _get_many(db, MapWarReport, skip=skip, limit=limit)
+    return await _get_many(db, MapWarReport, skip=skip, limit=limit, **filters)
 
 
 async def upsert_map_war_report(
@@ -293,19 +299,19 @@ async def upsert_map_war_report(
     )
 
 
-async def delete_map_war_report(db: AsyncSession, id: int) -> int:
-    return await _delete(db, MapWarReport, id=id)
+async def delete_map_war_report(db: AsyncSession, **filters) -> int:
+    return await _delete(db, MapWarReport, **filters)
 
 
 # StaticMapData
-async def get_static_map_data(db: AsyncSession, id: int) -> Optional[StaticMapData]:
-    return await _get_one(db, StaticMapData, id=id)
+async def get_static_map_data(db: AsyncSession, **filters) -> Optional[StaticMapData]:
+    return await _get_one(db, StaticMapData, **filters)
 
 
 async def list_static_map_data(
-    db: AsyncSession, skip: int = 0, limit: int = 100
+    db: AsyncSession, skip: int = 0, limit: int = 100, **filters
 ) -> List[StaticMapData]:
-    return await _get_many(db, StaticMapData, skip=skip, limit=limit)
+    return await _get_many(db, StaticMapData, skip=skip, limit=limit, **filters)
 
 
 async def upsert_static_map_data(
@@ -325,21 +331,21 @@ async def upsert_static_map_data(
     )
 
 
-async def delete_static_map_data(db: AsyncSession, id: int) -> int:
-    return await _delete(db, StaticMapData, id=id)
+async def delete_static_map_data(db: AsyncSession, **filters) -> int:
+    return await _delete(db, StaticMapData, **filters)
 
 
 # StaticMapDataItem
 async def get_static_map_data_item(
-    db: AsyncSession, id: int
+    db: AsyncSession, **filters
 ) -> Optional[StaticMapDataItem]:
-    return await _get_one(db, StaticMapDataItem, id=id)
+    return await _get_one(db, StaticMapDataItem, **filters)
 
 
 async def list_static_map_data_items(
-    db: AsyncSession, skip: int = 0, limit: int = 100
+    db: AsyncSession, skip: int = 0, limit: int = 100, **filters
 ) -> List[StaticMapDataItem]:
-    return await _get_many(db, StaticMapDataItem, skip=skip, limit=limit)
+    return await _get_many(db, StaticMapDataItem, skip=skip, limit=limit, **filters)
 
 
 async def upsert_static_map_data_item(
@@ -359,19 +365,19 @@ async def upsert_static_map_data_item(
     )
 
 
-async def delete_static_map_data_item(db: AsyncSession, id: int) -> int:
-    return await _delete(db, StaticMapDataItem, id=id)
+async def delete_static_map_data_item(db: AsyncSession, **filters) -> int:
+    return await _delete(db, StaticMapDataItem, **filters)
 
 
 # DynamicMapData
-async def get_dynamic_map_data(db: AsyncSession, id: int) -> Optional[DynamicMapData]:
-    return await _get_one(db, DynamicMapData, id=id)
+async def get_dynamic_map_data(db: AsyncSession, **filters) -> Optional[DynamicMapData]:
+    return await _get_one(db, DynamicMapData, **filters)
 
 
 async def list_dynamic_map_data(
-    db: AsyncSession, skip: int = 0, limit: int = 100
+    db: AsyncSession, skip: int = 0, limit: int = 100, **filters
 ) -> List[DynamicMapData]:
-    return await _get_many(db, DynamicMapData, skip=skip, limit=limit)
+    return await _get_many(db, DynamicMapData, skip=skip, limit=limit, **filters)
 
 
 async def upsert_dynamic_map_data(
@@ -391,21 +397,21 @@ async def upsert_dynamic_map_data(
     )
 
 
-async def delete_dynamic_map_data(db: AsyncSession, id: int) -> int:
-    return await _delete(db, DynamicMapData, id=id)
+async def delete_dynamic_map_data(db: AsyncSession, **filters) -> int:
+    return await _delete(db, DynamicMapData, **filters)
 
 
 # DynamicMapDataItem
 async def get_dynamic_map_data_item(
-    db: AsyncSession, id: int
+    db: AsyncSession, **filters
 ) -> Optional[DynamicMapDataItem]:
-    return await _get_one(db, DynamicMapDataItem, id=id)
+    return await _get_one(db, DynamicMapDataItem, **filters)
 
 
 async def list_dynamic_map_data_items(
-    db: AsyncSession, skip: int = 0, limit: int = 100
+    db: AsyncSession, skip: int = 0, limit: int = 100, **filters
 ) -> List[DynamicMapDataItem]:
-    return await _get_many(db, DynamicMapDataItem, skip=skip, limit=limit)
+    return await _get_many(db, DynamicMapDataItem, skip=skip, limit=limit, **filters)
 
 
 async def upsert_dynamic_map_data_item(
@@ -425,5 +431,5 @@ async def upsert_dynamic_map_data_item(
     )
 
 
-async def delete_dynamic_map_data_item(db: AsyncSession, id: int) -> int:
-    return await _delete(db, DynamicMapDataItem, id=id)
+async def delete_dynamic_map_data_item(db: AsyncSession, **filters) -> int:
+    return await _delete(db, DynamicMapDataItem, **filters)
