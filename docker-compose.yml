@@ -1,7 +1,8 @@
 version: '3.8'
 
 services:
-  mariadb:
+  mariadb:    
+    platform: linux/aarch64
     image: mariadb:10.11 # Use a specific, stable version
     container_name: foxhole_mariadb
     restart: unless-stopped
