@@ -17,7 +17,15 @@ async def fetch_and_store_war_data(base_url: str):
     logger.info("Starting data ingestion...")
     try:
         # 1. Fetch data from external API
-        war_data = await war_api_client.get_current_war_data(base_url)
+        mock = False
+        if not mock:
+            war_data = await war_api_client.get_current_war_data(base_url)
+        else:
+            with open("war_data.json", "r") as file:
+                import json
+
+                war_data = json.load(file)
+                del json
 
         if not war_data:
             logger.warning("No data received from War API.")
