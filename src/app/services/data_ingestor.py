@@ -1,7 +1,7 @@
 from datetime import datetime
 import logging
-from typing import Any, Dict
-from src.app.database.models import REV, Shard, WarState
+from typing import Any, Dict, List
+from src.app.database.models import REV, Shard
 from src.app.services import war_api_client
 from src.app.database import crud
 from src.app.database.session import AsyncSessionLocal
@@ -46,12 +46,18 @@ async def insert_scraped_data(db, war_data: Dict[str, Any], rev, shard) -> Any:
     for key, value in war_data.items():
         match key:
             case "war_state":
-                print(f"{key} {value}")
                 value = parse_war_state(value, rev, shard)
                 await crud.upsert_warstate(db, value)
-                print("inserted")
             case "map_list":
-                ...
+                value = parse_map_list(value, rev)
+                for hex in value:
+                    try:
+                        out_hex = await crud.upsert_hex(
+                            db, hex, key_fields=["name"], strict_insert=True
+                        )
+                    except ValueError:
+                        logger.debug(f"Hex {hex} is already in DB.")
+                        out_hex = await crud.get_hex(db, name=hex["name"])
             case "map_war_report":
                 ...
             case "static_map_data":
@@ -62,7 +68,7 @@ async def insert_scraped_data(db, war_data: Dict[str, Any], rev, shard) -> Any:
                 logger.warning(f"Unknown key {key}")
 
 
-def parse_war_state(data: WarState, rev: REV, shard: Shard) -> WarState:
+def parse_war_state(data: Dict[str, Any], rev: REV, shard: Shard) -> Dict[str, Any]:
     """
     Ensured date fields are of datetime format
     """
@@ -82,4 +88,9 @@ def parse_war_state(data: WarState, rev: REV, shard: Shard) -> WarState:
     data["REV"] = rev.REV
     data["shard_id"] = shard.id
 
+    return data
+
+
+def parse_map_list(data: List[Dict[str, Any]], rev: REV) -> List[Dict[str, Any]]:
+    data = [{"id": None, "name": x, "REV": rev.REV} for x in data]
     return data
