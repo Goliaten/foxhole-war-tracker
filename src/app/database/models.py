@@ -71,7 +71,7 @@ class MapWarReport(Base):
     totalEnlistments: Mapped[int] = mapped_column(Integer, nullable=True)
     colonialCasualties: Mapped[int] = mapped_column(Integer, nullable=True)
     wardenCasualties: Mapped[int] = mapped_column(Integer, nullable=True)
-    daysOfWar: Mapped[int] = mapped_column(Integer, nullable=True)
+    dayOfWar: Mapped[int] = mapped_column(Integer, nullable=True)
     version: Mapped[int] = mapped_column(Integer, nullable=True)
 
     hex = relationship("Hex")

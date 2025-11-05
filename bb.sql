@@ -61,7 +61,7 @@ CREATE TABLE IF NOT EXISTS `MapWarReport` (
   `totalEnlistments` INT,
   `colonialCasualties` INT,
   `wardenCasualties` INT,
-  `daysOfWar` INT,
+  `dayOfWar` INT,
   `version` INT,
   PRIMARY KEY (id)
 );
