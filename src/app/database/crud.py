@@ -56,8 +56,7 @@ async def _upsert(
     If strict_update is True, raise if no record exists to update.
     """
     # Prefer updating by primary key if present in data and not null/None.
-    pk_names = [c.name for c in model.__table__.primary_key.columns]
-    pk_filters = {k: data[k] for k in pk_names if k in data and data[k] is not None}
+    pk_filters = {k: data[k] for k in key_fields if k in data and data[k] is not None}
 
     if pk_filters:
         existing = await _get_one(db, model, **pk_filters)
@@ -120,13 +119,14 @@ async def create_rev_and_get_id(db: AsyncSession) -> REV:
 async def upsert_rev(
     db: AsyncSession,
     data: Dict[str, Any],
+    key_fields=["REV"],
     strict_insert: bool = False,
     strict_update: bool = False,
 ) -> REV:
     return await _upsert(
         db,
         REV,
-        key_fields=["REV"],
+        key_fields=key_fields,
         data=data,
         strict_insert=strict_insert,
         strict_update=strict_update,
@@ -149,13 +149,14 @@ async def list_hexes(db: AsyncSession, skip: int = 0, limit: int = 100) -> List[
 async def upsert_hex(
     db: AsyncSession,
     data: Dict[str, Any],
+    key_fields=["id"],
     strict_insert: bool = False,
     strict_update: bool = False,
 ) -> Hex:
     return await _upsert(
         db,
         Hex,
-        key_fields=["id"],
+        key_fields=key_fields,
         data=data,
         strict_insert=strict_insert,
         strict_update=strict_update,
@@ -180,13 +181,14 @@ async def list_structure_types(
 async def upsert_structure_type(
     db: AsyncSession,
     data: Dict[str, Any],
+    key_fields=["id"],
     strict_insert: bool = False,
     strict_update: bool = False,
 ) -> StructureTypes:
     return await _upsert(
         db,
         StructureTypes,
-        key_fields=["id"],
+        key_fields=key_fields,
         data=data,
         strict_insert=strict_insert,
         strict_update=strict_update,
@@ -213,13 +215,14 @@ async def list_shards(db: AsyncSession, skip: int = 0, limit: int = 100) -> List
 async def upsert_shard(
     db: AsyncSession,
     data: Dict[str, Any],
+    key_fields=["id"],
     strict_insert: bool = False,
     strict_update: bool = False,
 ) -> Shard:
     return await _upsert(
         db,
         Shard,
-        key_fields=["id"],
+        key_fields=key_fields,
         data=data,
         strict_insert=strict_insert,
         strict_update=strict_update,
@@ -244,13 +247,14 @@ async def list_warstates(
 async def upsert_warstate(
     db: AsyncSession,
     data: Dict[str, Any],
+    key_fields=["id"],
     strict_insert: bool = False,
     strict_update: bool = False,
 ) -> WarState:
     return await _upsert(
         db,
         WarState,
-        key_fields=["id"],
+        key_fields=key_fields,
         data=data,
         strict_insert=strict_insert,
         strict_update=strict_update,
@@ -275,13 +279,14 @@ async def list_map_war_reports(
 async def upsert_map_war_report(
     db: AsyncSession,
     data: Dict[str, Any],
+    key_fields=["id"],
     strict_insert: bool = False,
     strict_update: bool = False,
 ) -> MapWarReport:
     return await _upsert(
         db,
         MapWarReport,
-        key_fields=["id"],
+        key_fields=key_fields,
         data=data,
         strict_insert=strict_insert,
         strict_update=strict_update,
@@ -306,13 +311,14 @@ async def list_static_map_data(
 async def upsert_static_map_data(
     db: AsyncSession,
     data: Dict[str, Any],
+    key_fields=["id"],
     strict_insert: bool = False,
     strict_update: bool = False,
 ) -> StaticMapData:
     return await _upsert(
         db,
         StaticMapData,
-        key_fields=["id"],
+        key_fields=key_fields,
         data=data,
         strict_insert=strict_insert,
         strict_update=strict_update,
@@ -339,13 +345,14 @@ async def list_static_map_data_items(
 async def upsert_static_map_data_item(
     db: AsyncSession,
     data: Dict[str, Any],
+    key_fields=["id"],
     strict_insert: bool = False,
     strict_update: bool = False,
 ) -> StaticMapDataItem:
     return await _upsert(
         db,
         StaticMapDataItem,
-        key_fields=["id"],
+        key_fields=key_fields,
         data=data,
         strict_insert=strict_insert,
         strict_update=strict_update,
@@ -370,13 +377,14 @@ async def list_dynamic_map_data(
 async def upsert_dynamic_map_data(
     db: AsyncSession,
     data: Dict[str, Any],
+    key_fields=["id"],
     strict_insert: bool = False,
     strict_update: bool = False,
 ) -> DynamicMapData:
     return await _upsert(
         db,
         DynamicMapData,
-        key_fields=["id"],
+        key_fields=key_fields,
         data=data,
         strict_insert=strict_insert,
         strict_update=strict_update,
@@ -403,13 +411,14 @@ async def list_dynamic_map_data_items(
 async def upsert_dynamic_map_data_item(
     db: AsyncSession,
     data: Dict[str, Any],
+    key_fields=["id"],
     strict_insert: bool = False,
     strict_update: bool = False,
 ) -> DynamicMapDataItem:
     return await _upsert(
         db,
         DynamicMapDataItem,
-        key_fields=["id"],
+        key_fields=key_fields,
         data=data,
         strict_insert=strict_insert,
         strict_update=strict_update,
