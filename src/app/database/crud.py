@@ -208,10 +208,6 @@ async def get_shard(db: AsyncSession, **filters) -> Optional[Shard]:
     return await _get_one(db, Shard, **filters)
 
 
-async def get_shard_by_url(db: AsyncSession, base_url: str) -> Optional[Shard]:
-    return await _get_one(db, Shard, url=base_url)
-
-
 async def list_shards(
     db: AsyncSession, skip: int = 0, limit: int = 100, **filters
 ) -> List[Shard]:

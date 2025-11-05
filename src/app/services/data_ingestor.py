@@ -35,7 +35,7 @@ async def fetch_and_store_war_data(base_url: str):
         async with AsyncSessionLocal() as db:
             rev = await crud.create_rev_and_get_id(db)
 
-            shard = await crud.get_shard_by_url(db, base_url)
+            shard = await crud.get_shard(db, url=base_url)
 
             # 3. Pass data to CRUD function to create or update
             await insert_scraped_data(db, war_data, rev, shard)
