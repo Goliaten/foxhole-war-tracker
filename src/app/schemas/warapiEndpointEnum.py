@@ -12,5 +12,3 @@ class warapiEndpoints(Enum):
     # needs to be done once per war
     dynamic_map_data = r"/worldconquest/maps/{map_name}/dynamic/public"
     # may be updated every 3 seconds
-    map_data_schema = r"/worldconquest/maps/{map_name}/static"
-    # no info on update refresh time
