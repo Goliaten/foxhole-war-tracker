@@ -93,7 +93,7 @@ async def _upsert(
     await db.execute(stmt)
     await db.commit()
     # Try to return by any provided key_fields if possible, otherwise return None
-    return await _get_one(db, model, **{k: data[k] for k in key_fields if k in data})
+    return await _get_one(db, model, **{k: data[k] for k in data})
 
 
 # Per-model CRUD wrappers
