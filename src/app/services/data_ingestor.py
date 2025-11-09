@@ -1,6 +1,6 @@
 from datetime import datetime
 import logging
-from typing import Any, Dict, List
+from typing import Any, Dict, List, Tuple
 from src.app.database.models import REV, Hex, Shard
 from src.app.services import war_api_client
 from src.app.database import crud
@@ -73,7 +73,21 @@ async def insert_scraped_data(db, war_data: Dict[str, Any], rev, shard) -> Any:
                 for mapwardata in value:
                     await crud.upsert_map_war_report(db, mapwardata)
             case "static_map_data":
-                ...
+                logger.info("Inserting static map data.")
+                value = parse_static_map_data(value, rev, shard, hexes)
+                for static_map_data in value:
+                    out_static_data = await crud.upsert_static_map_data(
+                        db, static_map_data[0], strict_insert=True
+                    )
+                    upsert_items = [
+                        x | {"StaticMapData_id": out_static_data.id}
+                        for x in static_map_data[1]
+                    ]
+                    for item in upsert_items:
+                        await crud.upsert_static_map_data_item(
+                            db, item, strict_insert=True
+                        )
+
             case "dynamic_map_data":
                 ...
             case _:
@@ -120,4 +134,38 @@ def parse_map_war_report(
             "shard_id": shard.id,
         } | value
         out.append(item)
+    return out
+
+
+def parse_static_map_data(
+    data: Dict[str, Dict[str, Any]], rev: REV, shard: Shard, hexes: List[Hex]
+) -> List[Tuple[Dict[str, Any], List[Dict[str, Any]]]]:
+    out: List[Tuple[Dict[str, Any], List[Dict[str, Any]]]] = []
+
+    for key, value in data.items():
+        hex = [x for x in hexes if x.name == key][0]
+
+        # adding id from other tables
+        item: Dict[str, Any] = {
+            "REV": rev.REV,
+            "hex_id": hex.id,
+            "shard_id": shard.id,
+        } | value
+
+        # removing unused data
+        to_pop = ["mapItemsW", "mapItems", "lastUpdated", "mapItemsC"]
+        for x in to_pop:
+            item.pop(x)
+
+        # separating sub-items
+        try:
+            data_items: List[Dict[str, Any]] = item.pop("mapTextItems")
+        except (ValueError, IndexError):
+            data_items = []
+
+        for data_item in data_items:
+            data_item |= {"REV": rev.REV}
+
+        out.append((item, data_items))
+
     return out
