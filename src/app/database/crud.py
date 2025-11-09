@@ -39,7 +39,7 @@ async def _delete(db: AsyncSession, model: Type[Any], **filters) -> int:
     stmt = sa_delete(model).filter_by(**filters)
     res = await db.execute(stmt)
     await db.commit()
-    return res.rowcount if hasattr(res, "rowcount") else 0
+    return res.rowcount if hasattr(res, "rowcount") else 0  # type: ignore
 
 
 async def _upsert(
