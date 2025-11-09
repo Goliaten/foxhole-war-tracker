@@ -10,6 +10,8 @@ async def get_current_war_data(base_url: str) -> dict:
     """
     Fetches the main /war endpoint from the external API.
     """
+    # TODO add if checks for each endpoint and its flag
+    scraping_flags = get_scraping_flags(base_url)
     async with httpx.AsyncClient() as client:
         try:
             if not touch_base_url(client, base_url):
@@ -43,6 +45,13 @@ async def get_current_war_data(base_url: str) -> dict:
         except httpx.RequestError as e:
             print(f"An error occurred while requesting {e.request.url!r}: {e}")
             raise
+
+
+def get_scraping_flags(shard_url) -> Dict[warapiEndpoints, bool]:
+    out = {x: True for x in warapiEndpoints}
+    # TODO add a check if we already have data for current war on this shard
+    # get static map data for all
+    return out
 
 
 def flatten_dict(dict_: List[Dict[Any, Any]]) -> Dict[Any, Any]:
