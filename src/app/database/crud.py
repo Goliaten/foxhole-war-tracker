@@ -121,7 +121,7 @@ async def create_rev_and_get_id(db: AsyncSession) -> REV:
 async def upsert_rev(
     db: AsyncSession,
     data: Dict[str, Any],
-    key_fields=["REV"],
+    key_fields: List[str] = ["REV"],
     strict_insert: bool = False,
     strict_update: bool = False,
 ) -> REV:
@@ -153,7 +153,7 @@ async def list_hexes(
 async def upsert_hex(
     db: AsyncSession,
     data: Dict[str, Any],
-    key_fields=["id"],
+    key_fields: List[str] = ["id"],
     strict_insert: bool = False,
     strict_update: bool = False,
 ) -> Hex:
@@ -185,7 +185,7 @@ async def list_structure_types(
 async def upsert_structure_type(
     db: AsyncSession,
     data: Dict[str, Any],
-    key_fields=["id"],
+    key_fields: List[str] = ["id"],
     strict_insert: bool = False,
     strict_update: bool = False,
 ) -> StructureTypes:
@@ -217,7 +217,7 @@ async def list_shards(
 async def upsert_shard(
     db: AsyncSession,
     data: Dict[str, Any],
-    key_fields=["id"],
+    key_fields: List[str] = ["id"],
     strict_insert: bool = False,
     strict_update: bool = False,
 ) -> Shard:
@@ -249,7 +249,7 @@ async def list_warstates(
 async def upsert_warstate(
     db: AsyncSession,
     data: Dict[str, Any],
-    key_fields=["id"],
+    key_fields: List[str] = ["id"],
     strict_insert: bool = False,
     strict_update: bool = False,
 ) -> WarState:
@@ -281,7 +281,7 @@ async def list_map_war_reports(
 async def upsert_map_war_report(
     db: AsyncSession,
     data: Dict[str, Any],
-    key_fields=["id"],
+    key_fields: List[str] = ["id"],
     strict_insert: bool = False,
     strict_update: bool = False,
 ) -> MapWarReport:
@@ -313,7 +313,7 @@ async def list_static_map_data(
 async def upsert_static_map_data(
     db: AsyncSession,
     data: Dict[str, Any],
-    key_fields=["id"],
+    key_fields: List[str] = ["id"],
     strict_insert: bool = False,
     strict_update: bool = False,
 ) -> StaticMapData:
@@ -347,7 +347,7 @@ async def list_static_map_data_items(
 async def upsert_static_map_data_item(
     db: AsyncSession,
     data: Dict[str, Any],
-    key_fields=["id"],
+    key_fields: List[str] = ["id"],
     strict_insert: bool = False,
     strict_update: bool = False,
 ) -> StaticMapDataItem:
@@ -379,7 +379,7 @@ async def list_dynamic_map_data(
 async def upsert_dynamic_map_data(
     db: AsyncSession,
     data: Dict[str, Any],
-    key_fields=["id"],
+    key_fields: List[str] = ["id"],
     strict_insert: bool = False,
     strict_update: bool = False,
 ) -> DynamicMapData:
@@ -413,7 +413,7 @@ async def list_dynamic_map_data_items(
 async def upsert_dynamic_map_data_item(
     db: AsyncSession,
     data: Dict[str, Any],
-    key_fields=["id"],
+    key_fields: List[str] = ["id"],
     strict_insert: bool = False,
     strict_update: bool = False,
 ) -> DynamicMapDataItem:
