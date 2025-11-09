@@ -89,7 +89,21 @@ async def insert_scraped_data(db, war_data: Dict[str, Any], rev, shard) -> Any:
                         )
 
             case "dynamic_map_data":
-                ...
+                logger.info("Inserting dynamic map data.")
+                value = parse_dynamic_map_data(value, rev, shard, hexes)
+                for dynamic_map_data in value:
+                    out_dynamic_data = await crud.upsert_dynamic_map_data(
+                        db, dynamic_map_data[0], strict_insert=True
+                    )
+                    upsert_items = [
+                        x | {"DynamicMapData_id": out_dynamic_data.id}
+                        for x in dynamic_map_data[1]
+                    ]
+                    for item in upsert_items:
+                        await crud.upsert_dynamic_map_data_item(
+                            db, item, strict_insert=True
+                        )
+
             case _:
                 logger.warning(f"Unknown key {key}")
 
@@ -160,6 +174,40 @@ def parse_static_map_data(
         # separating sub-items
         try:
             data_items: List[Dict[str, Any]] = item.pop("mapTextItems")
+        except (ValueError, IndexError):
+            data_items = []
+
+        for data_item in data_items:
+            data_item |= {"REV": rev.REV}
+
+        out.append((item, data_items))
+
+    return out
+
+
+def parse_dynamic_map_data(
+    data: Dict[str, Dict[str, Any]], rev: REV, shard: Shard, hexes: List[Hex]
+) -> List[Tuple[Dict[str, Any], List[Dict[str, Any]]]]:
+    out: List[Tuple[Dict[str, Any], List[Dict[str, Any]]]] = []
+
+    for key, value in data.items():
+        hex = [x for x in hexes if x.name == key][0]
+
+        # adding id from other tables
+        item: Dict[str, Any] = {
+            "REV": rev.REV,
+            "hex_id": hex.id,
+            "shard_id": shard.id,
+        } | value
+
+        # removing unused data
+        to_pop = ["mapItemsW", "mapTextItems", "lastUpdated", "mapItemsC"]
+        for x in to_pop:
+            item.pop(x)
+
+        # separating sub-items
+        try:
+            data_items: List[Dict[str, Any]] = item.pop("mapItems")
         except (ValueError, IndexError):
             data_items = []
 
