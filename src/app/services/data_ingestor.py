@@ -37,27 +37,34 @@ async def fetch_and_store_war_data(base_url: str):
 
             shard = await crud.get_shard(db, url=base_url)
 
+            logger.info(
+                f"Inserting data for shard {shard.name if shard else '_unknown_'}."
+            )
             # 3. Pass data to CRUD function to create or update
             await insert_scraped_data(db, war_data, rev, shard)
             logger.info(
                 f"Successfully upserted War {war_data.get('war_state', {}).get('warNumber')}. "
-                f"Shard {shard.name}"
+                f"Shard {shard.name if shard else '_unkown_'}"
             )
 
     except Exception as e:
         logger.error(f"Error during data ingestion: {e}", exc_info=True)
 
 
-async def insert_scraped_data(db, war_data: Dict[str, Any], rev, shard) -> Any:
-    logger.debug(f"war_data keys: {war_data.keys()}")
+async def insert_scraped_data(
+    db, war_data: Dict[str, Any], rev: REV, shard: Shard
+) -> Any:
     hexes: List[Hex] = []
 
     for key, value in war_data.items():
         match key:
             case "war_state":
+                logger.info("Inserting war state.")
                 value = parse_war_state(value, rev, shard)
                 await crud.upsert_warstate(db, value)
+
             case "map_list":
+                logger.info("Inserting map list.")
                 value = parse_map_list(value, rev)
                 for hex in value:
                     try:
@@ -68,10 +75,13 @@ async def insert_scraped_data(db, war_data: Dict[str, Any], rev, shard) -> Any:
                         logger.debug(f"Hex {hex} is already in DB.")
                         out_hex = await crud.get_hex(db, name=hex["name"])
                     hexes.append(out_hex)
+
             case "map_war_report":
+                logger.info("Inserting map war report.")
                 value = parse_map_war_report(value, rev, shard, hexes)
                 for mapwardata in value:
                     await crud.upsert_map_war_report(db, mapwardata)
+
             case "static_map_data":
                 logger.info("Inserting static map data.")
                 value = parse_static_map_data(value, rev, shard, hexes)
