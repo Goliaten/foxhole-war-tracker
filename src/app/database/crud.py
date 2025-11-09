@@ -144,6 +144,10 @@ async def get_hex(db: AsyncSession, **filters) -> Optional[Hex]:
     return await _get_one(db, Hex, **filters)
 
 
+async def get_hexes(db: AsyncSession, **filters) -> List[Optional[Hex]]:
+    return await _get_many(db, Hex, **filters)
+
+
 async def list_hexes(
     db: AsyncSession, skip: int = 0, limit: int = 100, **filters
 ) -> List[Hex]:
