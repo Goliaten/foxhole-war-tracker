@@ -34,9 +34,6 @@ async def get_current_war_data(base_url: str) -> dict:
             ] = await get_dynamic_map_datas(
                 client, base_url, out_json[warapiEndpoints.map_list.name]
             )
-            out_json[warapiEndpoints.map_data_schema.name] = await get_map_data_schemas(
-                client, base_url, out_json[warapiEndpoints.map_list.name]
-            )
 
             return out_json
 
@@ -132,27 +129,6 @@ async def get_dynamic_map_datas(
                 client,
                 base_url,
                 warapiEndpoints.dynamic_map_data.value.format(map_name=map_),
-                map_,
-            )
-        )
-        for map_ in maps
-    ]
-    return flatten_dict(await asyncio.gather(*tasks))
-
-
-async def get_map_data_schemas(
-    client: httpx.AsyncClient, base_url: str, maps: List[str]
-) -> Any:
-    """
-    Gets static map data for all provided maps
-    """
-
-    tasks = [
-        create_task(
-            get_from_map_endpoint(
-                client,
-                base_url,
-                warapiEndpoints.map_data_schema.value.format(map_name=map_),
                 map_,
             )
         )

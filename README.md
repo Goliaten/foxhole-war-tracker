@@ -70,3 +70,6 @@ source .venv/bin/activate
 ```bash
 uvicorn src.app.main:app --reload
 ```
+
+## 4. Endpoints
+Documentation for all endpoints is available at `/docs` endpoint.

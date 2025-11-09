@@ -62,7 +62,7 @@ app = FastAPI(
 )
 
 # Include the API router
-app.include_router(wars.router, prefix="/api/v1/wars", tags=["Wars"])
+app.include_router(wars.router, prefix="/api/v1/wars", tags=["war_api_data"])
 
 
 @app.get("/health", tags=["Health"])
