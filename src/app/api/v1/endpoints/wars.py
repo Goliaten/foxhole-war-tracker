@@ -1,16 +1,16 @@
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.ext.asyncio import AsyncSession
-from typing import List
+from typing import List, Optional
 
-from src.app.schemas.hex import Hex
+from src.app.schemas import Shard
+from src.app.schemas import Hex
 from src.app.database import crud
 from src.app.database.session import get_db
-from src.app.schemas.war import War
 
 router = APIRouter()
 
 
-@router.get("/hex", response_model=List[Hex])
+@router.get("/hex", response_model=List[Hex], tags=["hex"])
 async def read_hexes(db: AsyncSession = Depends(get_db)):
     """
     Retrieve all hexes.
@@ -19,7 +19,7 @@ async def read_hexes(db: AsyncSession = Depends(get_db)):
     return hexes
 
 
-@router.get("/hex/{hex_id}", response_model=Hex)
+@router.get("/hex/{hex_id}", response_model=Hex, tags=["hex"])
 async def read_hex(hex_id: int, db: AsyncSession = Depends(get_db)):
     """
     Retrieve a hex by `id`.
@@ -27,6 +27,26 @@ async def read_hex(hex_id: int, db: AsyncSession = Depends(get_db)):
     hex = await crud.get_hex(db, id=hex_id)
     if hex is None:
         raise HTTPException(status_code=404, detail="Hex not found")
+    return hex
+
+
+@router.get("/shard", response_model=List[Shard], tags=["shard"])
+async def read_shards(db: AsyncSession = Depends(get_db)):
+    """
+    Retrieve all shards.
+    """
+    hexes = await crud.get_hexes(db)
+    return hexes
+
+
+@router.get("/shard/{shard_id}", response_model=Shard, tags=["shard"])
+async def read_shard(shard_id: int, db: AsyncSession = Depends(get_db)):
+    """
+    Retrieve a shard by `id`.
+    """
+    hex = await crud.get_hex(db, id=shard_id)
+    if hex is None:
+        raise HTTPException(status_code=404, detail="Shard not found")
     return hex
 
 
