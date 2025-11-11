@@ -11,40 +11,40 @@ DROP TABLE IF EXISTS REV;
 
 CREATE TABLE IF NOT EXISTS `REV` (
   `REV` INT UNSIGNED AUTO_INCREMENT,
-  tmstmp TIMESTAMP,
+  tmstmp TIMESTAMP NOT NULL,
   PRIMARY KEY (REV)
 );
 
 CREATE TABLE IF NOT EXISTS `hex` (
   `id` INT UNSIGNED AUTO_INCREMENT,
-  `REV` INT UNSIGNED,
-  `name` VARCHAR(150),
+  `REV` INT UNSIGNED NOT NULL,
+  `name` VARCHAR(150) NOT NULL,
   PRIMARY KEY (id)
 );
 
 CREATE TABLE IF NOT EXISTS `StructureTypes` (
-  `id` INT UNSIGNED,
-  `REV` INT UNSIGNED,
-  `name` VARCHAR(50),
+  `id` INT UNSIGNED AUTO_INCREMENT,
+  `REV` INT UNSIGNED NOT NULL,
+  `name` VARCHAR(50) NOT NULL,
   PRIMARY KEY (id)
 );
 
 CREATE TABLE IF NOT EXISTS `shard` (
   `id` INT UNSIGNED AUTO_INCREMENT,
-  `REV` INT UNSIGNED,
-  `url` VARCHAR(200),
+  `REV` INT UNSIGNED NOT NULL,
+  `url` VARCHAR(200) NOT NULL,
   `name` VARCHAR(20),
   PRIMARY KEY (id)
 );
 
 CREATE TABLE IF NOT EXISTS `WarState` (
   `id` INT UNSIGNED AUTO_INCREMENT,
-  `REV` INT UNSIGNED,
-  `shard_id` INT UNSIGNED,
+  `REV` INT UNSIGNED NOT NULL,
+  `shard_id` INT UNSIGNED NOT NULL,
   `warId` VARCHAR(40),
-  `warNumber` INT,
+  `warNumber` INT NOT NULL,
   `winner` VARCHAR(20),
-  `conquestStartTime` TIMESTAMP,
+  `conquestStartTime` TIMESTAMP NOT NULL,
   `conquestEndTime` TIMESTAMP,
   `resistanceStartTime` TIMESTAMP,
   `scheduledConquestEndTime` TIMESTAMP,
@@ -55,9 +55,9 @@ CREATE TABLE IF NOT EXISTS `WarState` (
 
 CREATE TABLE IF NOT EXISTS `MapWarReport` (
   `id` INT UNSIGNED AUTO_INCREMENT,
-  `REV` INT UNSIGNED,
-  `hex_id` INT UNSIGNED,
-  `shard_id` INT UNSIGNED,
+  `REV` INT UNSIGNED NOT NULL,
+  `hex_id` INT UNSIGNED NOT NULL,
+  `shard_id` INT UNSIGNED NOT NULL,
   `totalEnlistments` INT,
   `colonialCasualties` INT,
   `wardenCasualties` INT,
@@ -69,9 +69,9 @@ CREATE TABLE IF NOT EXISTS `MapWarReport` (
 
 CREATE TABLE IF NOT EXISTS `StaticMapData` (
   `id` INT UNSIGNED AUTO_INCREMENT,
-  `REV` INT UNSIGNED,
-  `hex_id` INT UNSIGNED,
-  `shard_id` INT UNSIGNED,
+  `REV` INT UNSIGNED NOT NULL,
+  `hex_id` INT UNSIGNED NOT NULL,
+  `shard_id` INT UNSIGNED NOT NULL,
   `regionId` INT,
   `scorchedVictoryTowns` INT,
   `version` INT,
@@ -80,8 +80,8 @@ CREATE TABLE IF NOT EXISTS `StaticMapData` (
 
 CREATE TABLE IF NOT EXISTS `StaticMapDataItem` (
   `id` INT UNSIGNED AUTO_INCREMENT,
-  `REV` INT UNSIGNED,
-  `StaticMapData_id` INT UNSIGNED,
+  `REV` INT UNSIGNED NOT NULL,
+  `StaticMapData_id` INT UNSIGNED NOT NULL,
   `text` VARCHAR(150),
   `x` decimal(10,9),
   `y` decimal(10,9),
@@ -91,9 +91,9 @@ CREATE TABLE IF NOT EXISTS `StaticMapDataItem` (
 
 CREATE TABLE IF NOT EXISTS `DynamicMapData` (
   `id` INT UNSIGNED AUTO_INCREMENT,
-  `REV` INT UNSIGNED,
-  `hex_id` INT UNSIGNED,
-  `shard_id` INT UNSIGNED,
+  `REV` INT UNSIGNED NOT NULL,
+  `hex_id` INT UNSIGNED NOT NULL,
+  `shard_id` INT UNSIGNED NOT NULL,
   `regionId` INT,
   `scorchedVictoryTowns` INT,
   `version` INT,
@@ -102,8 +102,8 @@ CREATE TABLE IF NOT EXISTS `DynamicMapData` (
 
 CREATE TABLE IF NOT EXISTS `DynamicMapDataItem` (
   `id` INT UNSIGNED AUTO_INCREMENT,
-  `REV` INT UNSIGNED,
-  `DynamicMapData_id` INT UNSIGNED,
+  `REV` INT UNSIGNED NOT NULL,
+  `DynamicMapData_id` INT UNSIGNED NOT NULL,
   `teamId` VARCHAR(20),
   `iconType` INT UNSIGNED,
   `x` DECIMAL(10,9),
