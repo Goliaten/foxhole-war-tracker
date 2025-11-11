@@ -1,7 +1,7 @@
 from datetime import datetime, timezone
 from typing import Any, Dict, Iterable, List, Optional, Type
 
-from sqlalchemy import delete as sa_delete, insert as sa_insert
+from sqlalchemy import delete as sa_delete, desc, insert as sa_insert
 from sqlalchemy import select, update as sa_update
 from sqlalchemy.ext.asyncio import AsyncSession
 # sqlalchemy.orm imports not needed here
@@ -23,6 +23,13 @@ from src.app.database.models import (
 # Generic helpers
 async def _get_one(db: AsyncSession, model: Type[Any], **filters) -> Optional[Any]:
     stmt = select(model).filter_by(**filters)
+    result = await db.execute(stmt)
+    return result.scalars().first()
+
+
+# async def _get_one_last(db: AsyncSession, model: Type[Any], **filters) -> Optional[Any]:
+async def _get_one_last(db: AsyncSession, model: Type[Any], **filters) -> Optional[Any]:
+    stmt = select(model).filter_by(**filters).order_by(model.REV.desc())
     result = await db.execute(stmt)
     return result.scalars().first()
 
@@ -242,6 +249,10 @@ async def delete_shard(db: AsyncSession, **filters) -> int:
 # WarState
 async def get_warstate(db: AsyncSession, **filters) -> Optional[WarState]:
     return await _get_one(db, WarState, **filters)
+
+
+async def get_warstate_latest(db: AsyncSession, **filters) -> Optional[WarState]:
+    return await _get_one_last(db, WarState, **filters)
 
 
 async def list_warstates(
