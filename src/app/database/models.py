@@ -6,10 +6,11 @@ from sqlalchemy import (
     Float,
 )
 from sqlalchemy.orm import Mapped, mapped_column, relationship
-from src.app.database.session import Base
+from sqlalchemy.orm import declarative_base
 
 
-# Models derived from bb.sql
+# Base class for our SQLAlchemy models
+Base = declarative_base()
 
 
 class REV(Base):
