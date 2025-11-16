@@ -1,7 +1,7 @@
 from datetime import datetime, timezone
 from typing import Any, Dict, Iterable, List, Optional, Type
 
-from sqlalchemy import delete as sa_delete, desc, insert as sa_insert
+from sqlalchemy import delete as sa_delete, insert as sa_insert
 from sqlalchemy import select, update as sa_update
 from sqlalchemy.ext.asyncio import AsyncSession
 # sqlalchemy.orm imports not needed here
@@ -149,10 +149,6 @@ async def delete_rev(db: AsyncSession, rev: int) -> int:
 # Hex
 async def get_hex(db: AsyncSession, **filters) -> Optional[Hex]:
     return await _get_one(db, Hex, **filters)
-
-
-async def get_hexes(db: AsyncSession, **filters) -> List[Optional[Hex]]:
-    return await _get_many(db, Hex, **filters)
 
 
 async def list_hexes(
