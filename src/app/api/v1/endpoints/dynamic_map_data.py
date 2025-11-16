@@ -8,7 +8,7 @@ from src.app.database.session import get_db
 router = APIRouter(prefix="/dynamic_data")
 
 
-@router.get("/war_state/{shard_id}", response_model=...)
+@router.get("/war_state/{shard_id}", response_model=None)
 async def read_map_war_report(
     shard_id: int,
     war_number: Optional[int] = None,
@@ -17,7 +17,7 @@ async def read_map_war_report(
     raise HTTPException(status_code=501, detail="Endpoint not implemented.")
 
 
-@router.get("/war_state/{shard_id}", response_model=...)
+@router.get("/war_state/{shard_id}", response_model=None)
 async def read_dynamic_map_data_from_to(
     shard_id: int,
     war_number: Optional[int] = None,

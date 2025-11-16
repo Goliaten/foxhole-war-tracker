@@ -8,14 +8,14 @@ from src.app.database.session import get_db
 router = APIRouter(prefix="/static_data")
 
 
-@router.get("/{shard_id}", response_model=...)
+@router.get("/{shard_id}", response_model=None)
 async def read_static_map_data(
     shard_id: int, war_number: Optional[int] = None, db: AsyncSession = Depends(get_db)
 ):
     raise HTTPException(status_code=501, detail="Endpoint not implemented.")
 
 
-@router.get("/{shard_id}", response_model=...)
+@router.get("/{shard_id}", response_model=None)
 async def read_static_map_data_from_to(
     shard_id: int,
     war_number: Optional[int] = None,
