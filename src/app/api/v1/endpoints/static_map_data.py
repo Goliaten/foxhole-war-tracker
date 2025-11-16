@@ -19,8 +19,8 @@ async def read_static_map_data(
 async def read_static_map_data_from_to(
     shard_id: int,
     war_number: Optional[int] = None,
-    timestamp_from: Optional[int] = None,
-    timestamp_to: Optional[int] = None,
+    datetime_from: Optional[int] = None,
+    datetime_to: Optional[int] = None,
     skip: int = 0,
     limit: int = 100,
     db: AsyncSession = Depends(get_db),
