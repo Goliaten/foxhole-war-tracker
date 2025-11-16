@@ -10,6 +10,7 @@ class Settings(BaseSettings):
     DATABASE_URL: str
     WAR_API_BASE_URLS_JSON: List[str]
     LOG_LEVEL: str
+    FLASK_API_DATETIME_FORMAT: str = "%G-%m-%dT%H:%M:%S%:z"
 
     model_config = SettingsConfigDict(
         env_file=".env",

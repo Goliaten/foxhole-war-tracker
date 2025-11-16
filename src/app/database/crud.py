@@ -42,6 +42,30 @@ async def _get_many(
     return list(result.scalars().all())
 
 
+async def _get_many_REV(
+    db: AsyncSession, model: Type[Any], skip: int = 0, limit: int = 100, **filters
+) -> List[Any]:
+    """
+    special filter key: DATE_RANGE. Should be a list of 2 ISO8601 compliant datetime strings. Will be used to filter by REV timestamp.
+    """
+    date_range = None
+    if "DATE_RANGE" in filters:
+        date_range = filters.pop("DATE_RANGE")
+
+    stmt = (
+        select(model)
+        .filter_by(**filters)
+        .join(REV, model.REV == REV.REV)
+        .offset(skip)
+        .limit(limit)
+    )
+    if date_range:
+        stmt.filter(REV.tmstmp.between(date_range[0], date_range[1]))
+
+    result = await db.execute(stmt)
+    return list(result.scalars().all())
+
+
 async def _delete(db: AsyncSession, model: Type[Any], **filters) -> int:
     stmt = sa_delete(model).filter_by(**filters)
     res = await db.execute(stmt)
@@ -249,6 +273,18 @@ async def get_warstate(db: AsyncSession, **filters) -> Optional[WarState]:
 
 async def get_warstate_latest(db: AsyncSession, **filters) -> Optional[WarState]:
     return await _get_one_last(db, WarState, **filters)
+
+
+async def list_warstates_REV(
+    db: AsyncSession,
+    datetime_from: datetime,
+    datetime_to: datetime,
+    skip: int = 0,
+    limit: int = 100,
+    **filters,
+):
+    filters |= {"DATE_RANGE": [datetime_from, datetime_to]}
+    return await _get_many_REV(db, WarState, skip=skip, limit=limit, **filters)
 
 
 async def list_warstates(
