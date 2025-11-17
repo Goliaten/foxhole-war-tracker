@@ -337,6 +337,19 @@ async def get_map_war_report(db: AsyncSession, **filters) -> Optional[MapWarRepo
     return await _get_one(db, MapWarReport, **filters)
 
 
+async def get_map_war_report_latest(
+    db: AsyncSession, **filters
+) -> Optional[MapWarReport]:
+    """
+    For best usage, use both `shard_id` and `hex_id`.
+    """
+    return await _get_one_last(db, MapWarReport, **filters)
+
+
+async def list_map_war_report_latest(db: AsyncSession, **filters) -> List[MapWarReport]:
+    return await _get_many_last_by_hex_id(db, MapWarReport, **filters)
+
+
 async def list_map_war_reports(
     db: AsyncSession, skip: int = 0, limit: int = 100, **filters
 ) -> List[MapWarReport]:
