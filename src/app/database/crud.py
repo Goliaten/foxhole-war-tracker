@@ -282,7 +282,7 @@ async def list_warstates_REV(
     skip: int = 0,
     limit: int = 100,
     **filters,
-):
+) -> List[WarState]:
     filters |= {"DATE_RANGE": [datetime_from, datetime_to]}
     return await _get_many_REV(db, WarState, skip=skip, limit=limit, **filters)
 
@@ -325,6 +325,18 @@ async def list_map_war_reports(
     return await _get_many(db, MapWarReport, skip=skip, limit=limit, **filters)
 
 
+async def list_map_war_reports_REV(
+    db: AsyncSession,
+    datetime_from: datetime,
+    datetime_to: datetime,
+    skip: int = 0,
+    limit: int = 100,
+    **filters,
+) -> List[MapWarReport]:
+    filters |= {"DATE_RANGE": [datetime_from, datetime_to]}
+    return await _get_many_REV(db, MapWarReport, skip=skip, limit=limit, **filters)
+
+
 async def upsert_map_war_report(
     db: AsyncSession,
     data: Dict[str, Any],
@@ -348,6 +360,7 @@ async def delete_map_war_report(db: AsyncSession, **filters) -> int:
 
 # StaticMapData
 async def get_static_map_data(db: AsyncSession, **filters) -> Optional[StaticMapData]:
+    # TODO make different getter since this item has children
     return await _get_one(db, StaticMapData, **filters)
 
 
@@ -355,6 +368,18 @@ async def list_static_map_data(
     db: AsyncSession, skip: int = 0, limit: int = 100, **filters
 ) -> List[StaticMapData]:
     return await _get_many(db, StaticMapData, skip=skip, limit=limit, **filters)
+
+
+async def list_static_map_data_REV(
+    db: AsyncSession,
+    datetime_from: datetime,
+    datetime_to: datetime,
+    skip: int = 0,
+    limit: int = 100,
+    **filters,
+) -> List[StaticMapData]:
+    filters |= {"DATE_RANGE": [datetime_from, datetime_to]}
+    return await _get_many_REV(db, StaticMapData, skip=skip, limit=limit, **filters)
 
 
 async def upsert_static_map_data(
@@ -391,6 +416,18 @@ async def list_static_map_data_items(
     return await _get_many(db, StaticMapDataItem, skip=skip, limit=limit, **filters)
 
 
+async def list_static_map_data_items_REV(
+    db: AsyncSession,
+    datetime_from: datetime,
+    datetime_to: datetime,
+    skip: int = 0,
+    limit: int = 100,
+    **filters,
+) -> List[StaticMapDataItem]:
+    filters |= {"DATE_RANGE": [datetime_from, datetime_to]}
+    return await _get_many_REV(db, StaticMapDataItem, skip=skip, limit=limit, **filters)
+
+
 async def upsert_static_map_data_item(
     db: AsyncSession,
     data: Dict[str, Any],
@@ -414,6 +451,7 @@ async def delete_static_map_data_item(db: AsyncSession, **filters) -> int:
 
 # DynamicMapData
 async def get_dynamic_map_data(db: AsyncSession, **filters) -> Optional[DynamicMapData]:
+    # TODO make different getter since this item has children
     return await _get_one(db, DynamicMapData, **filters)
 
 
@@ -421,6 +459,18 @@ async def list_dynamic_map_data(
     db: AsyncSession, skip: int = 0, limit: int = 100, **filters
 ) -> List[DynamicMapData]:
     return await _get_many(db, DynamicMapData, skip=skip, limit=limit, **filters)
+
+
+async def list_dynamic_map_data_REV(
+    db: AsyncSession,
+    datetime_from: datetime,
+    datetime_to: datetime,
+    skip: int = 0,
+    limit: int = 100,
+    **filters,
+) -> List[DynamicMapData]:
+    filters |= {"DATE_RANGE": [datetime_from, datetime_to]}
+    return await _get_many_REV(db, DynamicMapData, skip=skip, limit=limit, **filters)
 
 
 async def upsert_dynamic_map_data(
@@ -455,6 +505,20 @@ async def list_dynamic_map_data_items(
     db: AsyncSession, skip: int = 0, limit: int = 100, **filters
 ) -> List[DynamicMapDataItem]:
     return await _get_many(db, DynamicMapDataItem, skip=skip, limit=limit, **filters)
+
+
+async def list_dynamic_map_data_items_REV(
+    db: AsyncSession,
+    datetime_from: datetime,
+    datetime_to: datetime,
+    skip: int = 0,
+    limit: int = 100,
+    **filters,
+) -> List[DynamicMapDataItem]:
+    filters |= {"DATE_RANGE": [datetime_from, datetime_to]}
+    return await _get_many_REV(
+        db, DynamicMapDataItem, skip=skip, limit=limit, **filters
+    )
 
 
 async def upsert_dynamic_map_data_item(
