@@ -27,10 +27,59 @@ async def _get_one(db: AsyncSession, model: Type[Any], **filters) -> Optional[An
     return result.scalars().first()
 
 
+# async def _get_one_last(db: AsyncSession, model: Type[Any], **filters) -> Optional[Any]:
+async def _get_one_last(db: AsyncSession, model: Type[Any], **filters) -> Optional[Any]:
+    stmt = select(model).filter_by(**filters).order_by(model.REV.desc())
+    result = await db.execute(stmt)
+    return result.scalars().first()
+
+
 async def _get_many(
     db: AsyncSession, model: Type[Any], skip: int = 0, limit: int = 100, **filters
 ) -> List[Any]:
     stmt = select(model).filter_by(**filters).offset(skip).limit(limit)
+    result = await db.execute(stmt)
+    return list(result.scalars().all())
+
+
+async def _get_many_last_by_hex_id(
+    db: AsyncSession, model: Type[Any], skip: int = 0, limit: int = 100, **filters
+) -> List[Any]:
+    """
+    For proper usage `hex_id` shouldn't be in filters.
+    """
+    stmt = (
+        select(model)
+        .filter_by(**filters)
+        .order_by(model.REV.desc())
+        .group_by(model.hex_id)
+        .offset(skip)
+        .limit(limit)
+    )
+    result = await db.execute(stmt)
+    return list(result.scalars().all())
+
+
+async def _get_many_REV(
+    db: AsyncSession, model: Type[Any], skip: int = 0, limit: int = 100, **filters
+) -> List[Any]:
+    """
+    special filter key: DATE_RANGE. Should be a list of 2 ISO8601 compliant datetime strings. Will be used to filter by REV timestamp.
+    """
+    date_range = None
+    if "DATE_RANGE" in filters:
+        date_range = filters.pop("DATE_RANGE")
+
+    stmt = (
+        select(model)
+        .filter_by(**filters)
+        .join(REV, model.REV == REV.REV)
+        .offset(skip)
+        .limit(limit)
+    )
+    if date_range:
+        stmt.filter(REV.tmstmp.between(date_range[0], date_range[1]))
+
     result = await db.execute(stmt)
     return list(result.scalars().all())
 
@@ -144,10 +193,6 @@ async def get_hex(db: AsyncSession, **filters) -> Optional[Hex]:
     return await _get_one(db, Hex, **filters)
 
 
-async def get_hexes(db: AsyncSession, **filters) -> List[Optional[Hex]]:
-    return await _get_many(db, Hex, **filters)
-
-
 async def list_hexes(
     db: AsyncSession, skip: int = 0, limit: int = 100, **filters
 ) -> List[Hex]:
@@ -244,6 +289,22 @@ async def get_warstate(db: AsyncSession, **filters) -> Optional[WarState]:
     return await _get_one(db, WarState, **filters)
 
 
+async def get_warstate_latest(db: AsyncSession, **filters) -> Optional[WarState]:
+    return await _get_one_last(db, WarState, **filters)
+
+
+async def list_warstates_REV(
+    db: AsyncSession,
+    datetime_from: datetime,
+    datetime_to: datetime,
+    skip: int = 0,
+    limit: int = 100,
+    **filters,
+) -> List[WarState]:
+    filters |= {"DATE_RANGE": [datetime_from, datetime_to]}
+    return await _get_many_REV(db, WarState, skip=skip, limit=limit, **filters)
+
+
 async def list_warstates(
     db: AsyncSession, skip: int = 0, limit: int = 100, **filters
 ) -> List[WarState]:
@@ -276,10 +337,35 @@ async def get_map_war_report(db: AsyncSession, **filters) -> Optional[MapWarRepo
     return await _get_one(db, MapWarReport, **filters)
 
 
+async def get_map_war_report_latest(
+    db: AsyncSession, **filters
+) -> Optional[MapWarReport]:
+    """
+    For best usage, use both `shard_id` and `hex_id`.
+    """
+    return await _get_one_last(db, MapWarReport, **filters)
+
+
+async def list_map_war_report_latest(db: AsyncSession, **filters) -> List[MapWarReport]:
+    return await _get_many_last_by_hex_id(db, MapWarReport, **filters)
+
+
 async def list_map_war_reports(
     db: AsyncSession, skip: int = 0, limit: int = 100, **filters
 ) -> List[MapWarReport]:
     return await _get_many(db, MapWarReport, skip=skip, limit=limit, **filters)
+
+
+async def list_map_war_reports_REV(
+    db: AsyncSession,
+    datetime_from: datetime,
+    datetime_to: datetime,
+    skip: int = 0,
+    limit: int = 100,
+    **filters,
+) -> List[MapWarReport]:
+    filters |= {"DATE_RANGE": [datetime_from, datetime_to]}
+    return await _get_many_REV(db, MapWarReport, skip=skip, limit=limit, **filters)
 
 
 async def upsert_map_war_report(
@@ -305,6 +391,7 @@ async def delete_map_war_report(db: AsyncSession, **filters) -> int:
 
 # StaticMapData
 async def get_static_map_data(db: AsyncSession, **filters) -> Optional[StaticMapData]:
+    # TODO make different getter since this item has children
     return await _get_one(db, StaticMapData, **filters)
 
 
@@ -312,6 +399,18 @@ async def list_static_map_data(
     db: AsyncSession, skip: int = 0, limit: int = 100, **filters
 ) -> List[StaticMapData]:
     return await _get_many(db, StaticMapData, skip=skip, limit=limit, **filters)
+
+
+async def list_static_map_data_REV(
+    db: AsyncSession,
+    datetime_from: datetime,
+    datetime_to: datetime,
+    skip: int = 0,
+    limit: int = 100,
+    **filters,
+) -> List[StaticMapData]:
+    filters |= {"DATE_RANGE": [datetime_from, datetime_to]}
+    return await _get_many_REV(db, StaticMapData, skip=skip, limit=limit, **filters)
 
 
 async def upsert_static_map_data(
@@ -348,6 +447,18 @@ async def list_static_map_data_items(
     return await _get_many(db, StaticMapDataItem, skip=skip, limit=limit, **filters)
 
 
+async def list_static_map_data_items_REV(
+    db: AsyncSession,
+    datetime_from: datetime,
+    datetime_to: datetime,
+    skip: int = 0,
+    limit: int = 100,
+    **filters,
+) -> List[StaticMapDataItem]:
+    filters |= {"DATE_RANGE": [datetime_from, datetime_to]}
+    return await _get_many_REV(db, StaticMapDataItem, skip=skip, limit=limit, **filters)
+
+
 async def upsert_static_map_data_item(
     db: AsyncSession,
     data: Dict[str, Any],
@@ -371,6 +482,7 @@ async def delete_static_map_data_item(db: AsyncSession, **filters) -> int:
 
 # DynamicMapData
 async def get_dynamic_map_data(db: AsyncSession, **filters) -> Optional[DynamicMapData]:
+    # TODO make different getter since this item has children
     return await _get_one(db, DynamicMapData, **filters)
 
 
@@ -378,6 +490,18 @@ async def list_dynamic_map_data(
     db: AsyncSession, skip: int = 0, limit: int = 100, **filters
 ) -> List[DynamicMapData]:
     return await _get_many(db, DynamicMapData, skip=skip, limit=limit, **filters)
+
+
+async def list_dynamic_map_data_REV(
+    db: AsyncSession,
+    datetime_from: datetime,
+    datetime_to: datetime,
+    skip: int = 0,
+    limit: int = 100,
+    **filters,
+) -> List[DynamicMapData]:
+    filters |= {"DATE_RANGE": [datetime_from, datetime_to]}
+    return await _get_many_REV(db, DynamicMapData, skip=skip, limit=limit, **filters)
 
 
 async def upsert_dynamic_map_data(
@@ -412,6 +536,20 @@ async def list_dynamic_map_data_items(
     db: AsyncSession, skip: int = 0, limit: int = 100, **filters
 ) -> List[DynamicMapDataItem]:
     return await _get_many(db, DynamicMapDataItem, skip=skip, limit=limit, **filters)
+
+
+async def list_dynamic_map_data_items_REV(
+    db: AsyncSession,
+    datetime_from: datetime,
+    datetime_to: datetime,
+    skip: int = 0,
+    limit: int = 100,
+    **filters,
+) -> List[DynamicMapDataItem]:
+    filters |= {"DATE_RANGE": [datetime_from, datetime_to]}
+    return await _get_many_REV(
+        db, DynamicMapDataItem, skip=skip, limit=limit, **filters
+    )
 
 
 async def upsert_dynamic_map_data_item(

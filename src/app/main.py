@@ -3,7 +3,7 @@ import logging
 from contextlib import asynccontextmanager
 from fastapi import FastAPI
 from src.app.services.data_ingestor import fetch_and_store_war_data
-from src.app.api.v1.endpoints import wars
+from src.app.api.v1 import wars
 from src.app.core.config import settings
 
 # Set up logging
@@ -62,7 +62,7 @@ app = FastAPI(
 )
 
 # Include the API router
-app.include_router(wars.router, prefix="/api/v1/wars", tags=["war_api_data"])
+app.include_router(wars.router, prefix="/war_api", tags=["war_api_data"])
 
 
 @app.get("/health", tags=["Health"])
