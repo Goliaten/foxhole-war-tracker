@@ -42,6 +42,24 @@ async def _get_many(
     return list(result.scalars().all())
 
 
+async def _get_many_last_by_hex_id(
+    db: AsyncSession, model: Type[Any], skip: int = 0, limit: int = 100, **filters
+) -> List[Any]:
+    """
+    For proper usage `hex_id` shouldn't be in filters.
+    """
+    stmt = (
+        select(model)
+        .filter_by(**filters)
+        .order_by(model.REV.desc())
+        .group_by(model.hex_id)
+        .offset(skip)
+        .limit(limit)
+    )
+    result = await db.execute(stmt)
+    return list(result.scalars().all())
+
+
 async def _get_many_REV(
     db: AsyncSession, model: Type[Any], skip: int = 0, limit: int = 100, **filters
 ) -> List[Any]:
