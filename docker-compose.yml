@@ -1,17 +1,18 @@
 version: '3.8'
 
 services:
-  mariadb:    
-    platform: linux/aarch64
-    image: mariadb:10.11 # Use a specific, stable version
+  mariadb:
+    platform: linux/arm64
+    image: jsurf/rpi-mariadb
     container_name: foxhole_mariadb
     restart: unless-stopped
     environment:
       MARIADB_USER: ${MARIADB_USER}
-      MARIADB_ROOT_PASSWORD: ${MARIADB_ROOT_PASSWORD} # From .env
-      MARIADB_DATABASE: ${MARIADB_DATABASE}           # From .env
+      MARIADB_ROOT_PASSWORD: ${MARIADB_ROOT_PASSWORD}
+      MYSQL_ROOT_PASSWORD: ${MARIADB_ROOT_PASSWORD}
+      MARIADB_DATABASE: ${MARIADB_DATABASE}
     ports:
-      - "${MARIADB_PORT}:${MARIADB_PORT}" # Map host port from .env
+      - "${MARIADB_PORT}:${MARIADB_PORT}"
     volumes:
       - db_data:/var/lib/mysql
 
