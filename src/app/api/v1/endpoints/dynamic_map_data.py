@@ -62,7 +62,9 @@ async def read_war_state_from_to(
 async def read_current_dynamic_map_data_for_hex(
     shard_id: int, hex_id: int, db: AsyncSession = Depends(get_db)
 ):
-    """ """
+    """
+    Returns current/latest dynamic map data for a hex on a specific shard.
+    """
     filters = {"shard_id": shard_id, "hex_id": hex_id}
 
     dynamic_data = await crud.get_dynamic_map_data_latest(db, **filters)
@@ -71,22 +73,21 @@ async def read_current_dynamic_map_data_for_hex(
     return dynamic_data
 
 
-# @router.get(
-#     "/{shard_id}",
-#     response_model=List[DynamicMapData],
-#     tags=["dynamic_data"],
-# )
+@router.get(
+    "/{shard_id}",
+    response_model=List[DynamicMapData],
+    tags=["dynamic_data"],
+)
 async def read_map_war_report_all_hexes(
     shard_id: int, db: AsyncSession = Depends(get_db)
 ):
-    raise HTTPException(
-        status_code=501,
-        detail="Endpoint not implemented",
-    )
-    """ """
+    """
+    Returns current/latest dynamic map data for all hexes on a specific shard.
+    This can return 23k lines of formatted json. Be careful of overusing this endpoint.
+    """
     filters = {"shard_id": shard_id}
 
-    dynamic_data = await crud.list_map_war_report_latest(db, **filters)
+    dynamic_data = await crud.list_dynamic_map_data_latest(db, **filters)
     if dynamic_data is None:
         raise HTTPException(status_code=404, detail="Dynamic map dat not found.")
     return dynamic_data

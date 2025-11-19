@@ -1,3 +1,4 @@
+import asyncio
 from datetime import datetime, timezone
 from typing import Any, Dict, Iterable, List, Optional, Type
 
@@ -505,11 +506,16 @@ async def list_dynamic_map_data(
 
 
 async def list_dynamic_map_data_latest(
-    db: AsyncSession, skip: int = 0, limit: int = 100, **filters
+    db: AsyncSession, **filters
 ) -> List[DynamicMapData]:
-    # TODO implement crud operation
-    # this should return latest war data for every hex there is
-    raise NotImplementedError
+    data: List[DynamicMapData] = await _get_many_last_by_hex_id(
+        db, DynamicMapData, **filters
+    )
+    tasks = [_get_many(db, DynamicMapDataItem, DynamicMapData_id=x.id) for x in data]
+    items = await asyncio.gather(*tasks)
+    for y, x in enumerate(data):
+        x.mapItems = items[y]
+    return data
 
 
 async def list_dynamic_map_data_REV(
