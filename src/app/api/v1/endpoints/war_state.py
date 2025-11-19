@@ -3,7 +3,6 @@ from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.ext.asyncio import AsyncSession
 from typing import List, Optional
 
-from src.app.core.config import settings
 from src.app.schemas import WarState
 from src.app.database import crud
 from src.app.database.session import get_db
