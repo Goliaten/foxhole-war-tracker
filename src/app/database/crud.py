@@ -486,10 +486,30 @@ async def get_dynamic_map_data(db: AsyncSession, **filters) -> Optional[DynamicM
     return await _get_one(db, DynamicMapData, **filters)
 
 
+async def get_dynamic_map_data_latest(
+    db: AsyncSession, **filters
+) -> Optional[DynamicMapData]:
+    data: Optional[DynamicMapData] = await _get_one_last(
+        db, model=DynamicMapData, **filters
+    )
+    if not data:
+        return None
+    data.mapItems = await _get_many(db, DynamicMapDataItem, DynamicMapData_id=data.id)
+    return data
+
+
 async def list_dynamic_map_data(
     db: AsyncSession, skip: int = 0, limit: int = 100, **filters
 ) -> List[DynamicMapData]:
     return await _get_many(db, DynamicMapData, skip=skip, limit=limit, **filters)
+
+
+async def list_dynamic_map_data_latest(
+    db: AsyncSession, skip: int = 0, limit: int = 100, **filters
+) -> List[DynamicMapData]:
+    # TODO implement crud operation
+    # this should return latest war data for every hex there is
+    raise NotImplementedError
 
 
 async def list_dynamic_map_data_REV(
@@ -501,6 +521,7 @@ async def list_dynamic_map_data_REV(
     **filters,
 ) -> List[DynamicMapData]:
     filters |= {"DATE_RANGE": [datetime_from, datetime_to]}
+    # TODO make different getter since this item has children
     return await _get_many_REV(db, DynamicMapData, skip=skip, limit=limit, **filters)
 
 
