@@ -70,16 +70,21 @@ async def _get_many_REV(
     date_range = None
     if "DATE_RANGE" in filters:
         date_range = filters.pop("DATE_RANGE")
+    else:
+        raise ValueError("Date range missing.")
 
     stmt = (
-        select(model)
-        .filter_by(**filters)
-        .join(REV, model.REV == REV.REV)
+        (
+            select(model)
+            .filter_by(**filters)
+            .join(REV, model.REV == REV.REV)
+            .where(
+                REV.tmstmp.between(date_range[0].isoformat(), date_range[1].isoformat())
+            )
+        )
         .offset(skip)
         .limit(limit)
     )
-    if date_range:
-        stmt.filter(REV.tmstmp.between(date_range[0], date_range[1]))
 
     result = await db.execute(stmt)
     return list(result.scalars().all())
@@ -527,8 +532,13 @@ async def list_dynamic_map_data_REV(
     **filters,
 ) -> List[DynamicMapData]:
     filters |= {"DATE_RANGE": [datetime_from, datetime_to]}
-    # TODO make different getter since this item has children
-    return await _get_many_REV(db, DynamicMapData, skip=skip, limit=limit, **filters)
+
+    data = await _get_many_REV(db, DynamicMapData, skip=skip, limit=limit, **filters)
+    tasks = [_get_many(db, DynamicMapDataItem, DynamicMapData_id=x.id) for x in data]
+    items = await asyncio.gather(*tasks)
+    for y, x in enumerate(data):
+        x.mapItems = items[y]
+    return data
 
 
 async def upsert_dynamic_map_data(

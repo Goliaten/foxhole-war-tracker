@@ -10,15 +10,12 @@ from src.app.database.session import get_db
 router = APIRouter(prefix="/dynamic_data")
 
 
-# @router.get(
-#     "/range/{shard_id}", response_model=List[DynamicMapData], tags=["dynamic_data"]
-# )
-# @router.get(
-#     "/range/{shard_id}/{war_number}",
-#     response_model=List[DynamicMapData],
-#     tags=["dynamic_data"],
-# )
-async def read_war_state_from_to(
+@router.get(
+    "/range/{shard_id}",
+    response_model=List[DynamicMapData],
+    tags=["dynamic_data"],
+)
+async def read_range_of_dynamic_war_data(
     shard_id: int,
     datetime_from: datetime,
     datetime_to: datetime,
@@ -27,13 +24,35 @@ async def read_war_state_from_to(
     limit: int = 100,
     db: AsyncSession = Depends(get_db),
 ):
+    """
+    Endpoint not implemented due to permormance concerns.
+    """
     raise HTTPException(
         status_code=501,
-        detail="Endpoint not implemented",
+        detail="Endpoint not implemented due to permormance concerns.",
     )
+
+
+@router.get(
+    "/range/{shard_id}/{hex_id}",
+    response_model=List[DynamicMapData],
+    tags=["dynamic_data"],
+)
+async def read_range_of_dynamic_war_data_for_hex(
+    shard_id: int,
+    datetime_from: datetime,
+    datetime_to: datetime,
+    hex_id: int,
+    skip: int = 0,
+    limit: int = 100,
+    db: AsyncSession = Depends(get_db),
+):
+    """
+    Returns the dynamic war data for specific hex and shard for a range of dates.
+    """
     filters = {"shard_id": shard_id}
-    if war_number:
-        filters["warNumber"] = war_number
+    if hex_id:
+        filters["hex_id"] = hex_id
 
     if datetime_from >= datetime_to:
         raise HTTPException(
@@ -41,7 +60,7 @@ async def read_war_state_from_to(
             detail="Invalid datetime range. `from` should be smaller than `to`.",
         )
 
-    dynamic_data = await crud.list_warstates_REV(
+    dynamic_data = await crud.list_dynamic_map_data_REV(
         db,
         datetime_from=datetime_from,
         datetime_to=datetime_to,
