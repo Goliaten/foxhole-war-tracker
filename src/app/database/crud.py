@@ -1,3 +1,4 @@
+import asyncio
 from datetime import datetime, timezone
 from typing import Any, Dict, Iterable, List, Optional, Type
 
@@ -69,16 +70,21 @@ async def _get_many_REV(
     date_range = None
     if "DATE_RANGE" in filters:
         date_range = filters.pop("DATE_RANGE")
+    else:
+        raise ValueError("Date range missing.")
 
     stmt = (
-        select(model)
-        .filter_by(**filters)
-        .join(REV, model.REV == REV.REV)
+        (
+            select(model)
+            .filter_by(**filters)
+            .join(REV, model.REV == REV.REV)
+            .where(
+                REV.tmstmp.between(date_range[0].isoformat(), date_range[1].isoformat())
+            )
+        )
         .offset(skip)
         .limit(limit)
     )
-    if date_range:
-        stmt.filter(REV.tmstmp.between(date_range[0], date_range[1]))
 
     result = await db.execute(stmt)
     return list(result.scalars().all())
@@ -486,10 +492,35 @@ async def get_dynamic_map_data(db: AsyncSession, **filters) -> Optional[DynamicM
     return await _get_one(db, DynamicMapData, **filters)
 
 
+async def get_dynamic_map_data_latest(
+    db: AsyncSession, **filters
+) -> Optional[DynamicMapData]:
+    data: Optional[DynamicMapData] = await _get_one_last(
+        db, model=DynamicMapData, **filters
+    )
+    if not data:
+        return None
+    data.mapItems = await _get_many(db, DynamicMapDataItem, DynamicMapData_id=data.id)
+    return data
+
+
 async def list_dynamic_map_data(
     db: AsyncSession, skip: int = 0, limit: int = 100, **filters
 ) -> List[DynamicMapData]:
     return await _get_many(db, DynamicMapData, skip=skip, limit=limit, **filters)
+
+
+async def list_dynamic_map_data_latest(
+    db: AsyncSession, **filters
+) -> List[DynamicMapData]:
+    data: List[DynamicMapData] = await _get_many_last_by_hex_id(
+        db, DynamicMapData, **filters
+    )
+    tasks = [_get_many(db, DynamicMapDataItem, DynamicMapData_id=x.id) for x in data]
+    items = await asyncio.gather(*tasks)
+    for y, x in enumerate(data):
+        x.mapItems = items[y]
+    return data
 
 
 async def list_dynamic_map_data_REV(
@@ -501,7 +532,13 @@ async def list_dynamic_map_data_REV(
     **filters,
 ) -> List[DynamicMapData]:
     filters |= {"DATE_RANGE": [datetime_from, datetime_to]}
-    return await _get_many_REV(db, DynamicMapData, skip=skip, limit=limit, **filters)
+
+    data = await _get_many_REV(db, DynamicMapData, skip=skip, limit=limit, **filters)
+    tasks = [_get_many(db, DynamicMapDataItem, DynamicMapData_id=x.id) for x in data]
+    items = await asyncio.gather(*tasks)
+    for y, x in enumerate(data):
+        x.mapItems = items[y]
+    return data
 
 
 async def upsert_dynamic_map_data(
