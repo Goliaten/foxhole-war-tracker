@@ -159,6 +159,13 @@ async def get_rev(db: AsyncSession, rev: int) -> Optional[REV]:
     return await _get_one(db, REV, REV=rev)
 
 
+async def get_rev_by_timestamp(db: AsyncSession, timestamp: datetime) -> Optional[REV]:
+    stmt = select(REV).where(REV.tmstmp <= timestamp).order_by(REV.REV.desc())
+    result = await db.execute(stmt)
+    return result.scalars().first()
+    # return await _get
+
+
 async def list_revs(
     db: AsyncSession, skip: int = 0, limit: int = 100, **filters
 ) -> List[REV]:
