@@ -1,6 +1,7 @@
 import asyncio
 import logging
 from contextlib import asynccontextmanager
+from fastapi.middleware.cors import CORSMiddleware
 from fastapi import FastAPI
 from src.app.services.data_ingestor import fetch_and_store_war_data
 from src.app.api.v1 import wars
@@ -63,6 +64,15 @@ app = FastAPI(
 
 # Include the API router
 app.include_router(wars.router, prefix="/war_api", tags=["war_api_data"])
+
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["http://localhost:8000", "http://localhost:5173"],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 
 
 @app.get("/health", tags=["Health"])
