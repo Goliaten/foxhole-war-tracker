@@ -1,4 +1,33 @@
 services:
+
+  core:
+    build:
+      context: .
+      dockerfile_inline: |
+        FROM python:3.12.3
+
+        RUN mkdir -p /usr/src
+        COPY ./src /usr/src
+        COPY ./requirements.txt /usr/requirements.txt
+
+        WORKDIR /usr
+
+        RUN python -m pip install -r ./requirements.txt
+        RUN python -m pip install "uvicorn[standard]>=0.38.0"
+
+        CMD ["uvicorn", "src.app.main:app", "--reload", "--port", "8001"]
+
+    container_name: foxhole_api
+    restart: unless-stopped
+    ports:
+      - "8001:${FLASK_PORT}"
+    environment:
+      # MARIADB_USER: ${MARIADB_USER}
+      # MARIADB_ROOT_PASSWORD: ${MARIADB_ROOT_PASSWORD}
+      # MARIADB_DATABASE: ${MARIADB_DATABASE}
+      LOG_LEVEL: ${LOG_LEVEL}
+      WAR_API_BASE_URLS_JSON: ${WAR_API_BASE_URLS_JSON}
+      DATABASE_URL: ${DATABASE_URL}
   mariadb:
     image: mariadb:10.11 # Use a specific, stable version
     container_name: foxhole_mariadb
