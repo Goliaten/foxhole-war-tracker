@@ -4,3 +4,4 @@ from .war_state import WarState  # noqa: F401
 from .map_war_report import MapWarReport  # noqa: F401
 from .dynamic_map_data import DynamicMapData  # noqa: F401
 from .static_map_data import StaticMapData  # noqa: F401
+from .rev import REV  # noqa: F401
