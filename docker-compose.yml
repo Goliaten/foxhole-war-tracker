@@ -1,14 +1,40 @@
 services:
+
+  core:
+    build:
+      context: .
+      dockerfile_inline: |
+        FROM python:3.12.3
+
+        RUN mkdir -p /usr/src
+        COPY ./src /usr/src
+        COPY ./requirements.txt /usr/requirements.txt
+
+        WORKDIR /usr
+
+        RUN python -m pip install -r ./requirements.txt
+        RUN python -m pip install "uvicorn[standard]>=0.38.0"
+
+        CMD ["uvicorn", "src.app.main:app", "--host", "0.0.0.0", "--port", "8001"]
+
+    container_name: foxhole_api
+    restart: unless-stopped
+    ports:
+      - "127.0.0.1:8001:${FLASK_PORT}"
+    environment:
+      LOG_LEVEL: ${LOG_LEVEL}
+      WAR_API_BASE_URLS_JSON: ${WAR_API_BASE_URLS_JSON}
+      DATABASE_URL: ${DOCKER_DB_URL}
   mariadb:
-    image: mariadb:10.11 # Use a specific, stable version
+    image: mariadb:10.11
     container_name: foxhole_mariadb
     restart: unless-stopped
     environment:
       MARIADB_USER: ${MARIADB_USER}
-      MARIADB_ROOT_PASSWORD: ${MARIADB_ROOT_PASSWORD} # From .env
-      MARIADB_DATABASE: ${MARIADB_DATABASE}           # From .env
+      MARIADB_ROOT_PASSWORD: ${MARIADB_ROOT_PASSWORD}
+      MARIADB_DATABASE: ${MARIADB_DATABASE}
     ports:
-      - "${MARIADB_PORT}:${MARIADB_PORT}" # Map host port from .env
+      - "${MARIADB_PORT}:${MARIADB_PORT}"
     volumes:
       - db_data:/var/lib/mysql
 
