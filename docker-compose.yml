@@ -22,7 +22,7 @@ services:
     container_name: foxhole_api
     restart: unless-stopped
     ports:
-      - "127.0.0.1:8001:${FLASK_PORT}"
+      - "0.0.0.0:8001:${FLASK_PORT}"
     environment:
       LOG_LEVEL: ${LOG_LEVEL}
       WAR_API_BASE_URLS_JSON: ${WAR_API_BASE_URLS_JSON}
