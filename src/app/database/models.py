@@ -1,3 +1,4 @@
+from typing import Type
 from sqlalchemy import (
     Integer,
     String,
@@ -10,7 +11,7 @@ from sqlalchemy.orm import declarative_base
 
 
 # Base class for our SQLAlchemy models
-Base = declarative_base()
+Base: Type = declarative_base()
 
 
 class REV(Base):
