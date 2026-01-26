@@ -191,9 +191,15 @@ INSERT INTO StructureTypes (id, REV, name) VALUES
   (72, 1, 'Rocket Site With Rocket'),
   (75, 1, 'Facility Mine Oil Rig'),
   (83, 1, 'Weather Station'),
-  (84, 1, 'Mortar House');
+  (84, 1, 'Mortar House'),
+  (88, 1, 'Aircraft Depot'),
+  (89, 1, 'Aircraft Factory'),
+  (90, 1, 'Aircraft Radar'),
+  (91, 1, 'Aircraft Runway (T1)'),
+  (92, 1, 'Aircraft Runway (T2)');
 
 INSERT INTO shard VALUES
   (1, 1, 'https://war-service-live.foxholeservices.com/api', 'able'),
   (2, 1, 'https://war-service-live-2.foxholeservices.com/api', 'bravo'),
-  (3, 1, 'https://war-service-live-3.foxholeservices.com/api', 'charlie');
+  (3, 1, 'https://war-service-live-3.foxholeservices.com/api', 'charlie'),
+  (4, 1, 'https://war-service-dev.foxholeservices.com/api', 'devbranch');
