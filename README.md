@@ -29,7 +29,7 @@ It uses FastAPI, SQLAlchemy (async), `uv` for package management, and `ruff` for
 Run the Docker Compose file to start the MariaDB container in the background.
 
 ```bash
-docker compose -f docker-compose.yml up -d
+docker compose -f docker-compose.yml up -d mariadb
 ```
 
 ### Step 3: Setup the database tables
